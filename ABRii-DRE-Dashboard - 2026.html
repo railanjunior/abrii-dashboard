@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABRii — Dashboard Financeiro</title>
+
+<!-- PWA META TAGS -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ABRii DRE">
+<meta name="theme-color" content="#2f99a5">
+<meta name="description" content="Dashboard financeiro ABRii — Prosperando o Brasil">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkFCUmlpIOKAlCBEYXNoYm9hcmQgRmluYW5jZWlybyIsICJzaG9ydF9uYW1lIjogIkFCUmlpIERSRSIsICJkZXNjcmlwdGlvbiI6ICJEYXNoYm9hcmQgZmluYW5jZWlybyBBQlJpaSDCtyBQcm9zcGVyYW5kbyBvIEJyYXNpbCIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsICJ0aGVtZV9jb2xvciI6ICIjMmY5OWE1IiwgIm9yaWVudGF0aW9uIjogImxhbmRzY2FwZS1wcmltYXJ5IiwgImxhbmciOiAicHQtQlIiLCAiaWNvbnMiOiBbeyJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l4T1RJaUlHaGxhV2RvZEQwaU1Ua3lJaUIyYVdWM1FtOTRQU0l3SURBZ01Ua3lJREU1TWlJK0NpQWdQSEpsWTNRZ2QybGtkR2c5SWpFNU1pSWdhR1ZwWjJoMFBTSXhPVElpSUhKNFBTSTBNQ0lnWm1sc2JEMGlJekF6TUdZd1pTSXZQZ29nSUR4eVpXTjBJSGRwWkhSb1BTSXhPVElpSUdobGFXZG9kRDBpTVRreUlpQnllRDBpTkRBaUlHWnBiR3c5SW5WeWJDZ2pZbWNwSWk4K0NpQWdQSEJ2YkhsbmIyNGdjRzlwYm5SelBTSTVOaXd5TkNBeE5UUXNNVE00SURrMkxERXdOaUlnWm1sc2JEMGlkWEpzS0NObk1Ta2lMejRLSUNBOGNHOXNlV2R2YmlCd2IybHVkSE05SWprMkxESTBJRE00TERFek9DQTVOaXd4TURZaUlHWnBiR3c5SW5WeWJDZ2paeklwSWk4K0NpQWdQSEJoZEdnZ1pEMGlUVFV3TERFME1pQlJPVFlzTVRFeUlERTBNaXd4TkRJZ1RERXpNaXd4TlRnZ1VUazJMREV6TUNBMk1Dd3hOVGdnV2lJZ1ptbHNiRDBpSXpGaE1XRXhZU0l2UGdvZ0lEeHNhVzVsSUhneFBTSTVOaUlnZVRFOUlqSTBJaUI0TWowaU9UWWlJSGt5UFNJeE1EWWlJSE4wY205clpUMGljbWRpWVNneU5UVXNNalUxTERJMU5Td3dMalUxS1NJZ2MzUnliMnRsTFhkcFpIUm9QU0l5TGpVaUx6NEtJQ0E4YkdsdVpTQjRNVDBpT1RZaUlIa3hQU0l4TURZaUlIZ3lQU0l6T0NJZ2VUSTlJakV6T0NJZ2MzUnliMnRsUFNKeVoySmhLREkxTlN3eU5UVXNNalUxTERBdU15a2lJSE4wY205clpTMTNhV1IwYUQwaU1TNDRJaTgrQ2lBZ1BHeHBibVVnZURFOUlqazJJaUI1TVQwaU1UQTJJaUI0TWowaU1UVTBJaUI1TWowaU1UTTRJaUJ6ZEhKdmEyVTlJbkpuWW1Fb01qVTFMREkxTlN3eU5UVXNNQzR6S1NJZ2MzUnliMnRsTFhkcFpIUm9QU0l4TGpnaUx6NEtJQ0E4WkdWbWN6NEtJQ0FnSUR4c2FXNWxZWEpIY21Ga2FXVnVkQ0JwWkQwaVltY2lJSGd4UFNJd0lpQjVNVDBpTUNJZ2VESTlJakVpSUhreVBTSXhJajRLSUNBZ0lDQWdQSE4wYjNBZ2IyWm1jMlYwUFNJd0pTSWdjM1J2Y0MxamIyeHZjajBpSXpCaE1qUXlNaUl2UGp4emRHOXdJRzltWm5ObGREMGlNVEF3SlNJZ2MzUnZjQzFqYjJ4dmNqMGlJekF3TUNJdlBnb2dJQ0FnUEM5c2FXNWxZWEpIY21Ga2FXVnVkRDRLSUNBZ0lEeHNhVzVsWVhKSGNtRmthV1Z1ZENCcFpEMGlaekVpSUhneFBTSTFNQ1VpSUhreFBTSXdKU0lnZURJOUlqRXdNQ1VpSUhreVBTSXhNREFsSWo0S0lDQWdJQ0FnUEhOMGIzQWdiMlptYzJWMFBTSXdKU0lnYzNSdmNDMWpiMnh2Y2owaUl6TmhZalJqTWlJdlBqeHpkRzl3SUc5bVpuTmxkRDBpTVRBd0pTSWdjM1J2Y0MxamIyeHZjajBpSXpGaU5HSTFNeUl2UGdvZ0lDQWdQQzlzYVc1bFlYSkhjbUZrYVdWdWRENEtJQ0FnSUR4c2FXNWxZWEpIY21Ga2FXVnVkQ0JwWkQwaVp6SWlJSGd4UFNJd0pTSWdlVEU5SWpBbElpQjRNajBpTlRBbElpQjVNajBpTVRBd0pTSStDaUFnSUNBZ0lEeHpkRzl3SUc5bVpuTmxkRDBpTUNVaUlITjBiM0F0WTI5c2IzSTlJaU15WmprNVlUVWlMejQ4YzNSdmNDQnZabVp6WlhROUlqRXdNQ1VpSUhOMGIzQXRZMjlzYjNJOUlpTXhOalF3TkRJaUx6NEtJQ0FnSUR3dmJHbHVaV0Z5UjNKaFpHbGxiblErQ2lBZ1BDOWtaV1p6UGdvOEwzTjJaejQ9IiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9zdmcreG1sIiwgInB1cnBvc2UiOiAiYW55In0sIHsic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIZHBaSFJvUFNJMU1USWlJR2hsYVdkb2REMGlOVEV5SWlCMmFXVjNRbTk0UFNJd0lEQWdNVGt5SURFNU1pSStDaUFnUEhKbFkzUWdkMmxrZEdnOUlqRTVNaUlnYUdWcFoyaDBQU0l4T1RJaUlISjRQU0kwTUNJZ1ptbHNiRDBpSXpBek1HWXdaU0l2UGdvZ0lEeHlaV04wSUhkcFpIUm9QU0l4T1RJaUlHaGxhV2RvZEQwaU1Ua3lJaUJ5ZUQwaU5EQWlJR1pwYkd3OUluVnliQ2dqWW1jcElpOCtDaUFnUEhCdmJIbG5iMjRnY0c5cGJuUnpQU0k1Tml3eU5DQXhOVFFzTVRNNElEazJMREV3TmlJZ1ptbHNiRDBpZFhKc0tDTm5NU2tpTHo0S0lDQThjRzlzZVdkdmJpQndiMmx1ZEhNOUlqazJMREkwSURNNExERXpPQ0E1Tml3eE1EWWlJR1pwYkd3OUluVnliQ2dqWnpJcElpOCtDaUFnUEhCaGRHZ2daRDBpVFRVd0xERTBNaUJST1RZc01URXlJREUwTWl3eE5ESWdUREV6TWl3eE5UZ2dVVGsyTERFek1DQTJNQ3d4TlRnZ1dpSWdabWxzYkQwaUl6RmhNV0V4WVNJdlBnb2dJRHhzYVc1bElIZ3hQU0k1TmlJZ2VURTlJakkwSWlCNE1qMGlPVFlpSUhreVBTSXhNRFlpSUhOMGNtOXJaVDBpY21kaVlTZ3lOVFVzTWpVMUxESTFOU3d3TGpVMUtTSWdjM1J5YjJ0bExYZHBaSFJvUFNJeUxqVWlMejRLSUNBOGJHbHVaU0I0TVQwaU9UWWlJSGt4UFNJeE1EWWlJSGd5UFNJek9DSWdlVEk5SWpFek9DSWdjM1J5YjJ0bFBTSnlaMkpoS0RJMU5Td3lOVFVzTWpVMUxEQXVNeWtpSUhOMGNtOXJaUzEzYVdSMGFEMGlNUzQ0SWk4K0NpQWdQR3hwYm1VZ2VERTlJamsySWlCNU1UMGlNVEEySWlCNE1qMGlNVFUwSWlCNU1qMGlNVE00SWlCemRISnZhMlU5SW5KblltRW9NalUxTERJMU5Td3lOVFVzTUM0ektTSWdjM1J5YjJ0bExYZHBaSFJvUFNJeExqZ2lMejRLSUNBOFpHVm1jejRLSUNBZ0lEeHNhVzVsWVhKSGNtRmthV1Z1ZENCcFpEMGlZbWNpSUhneFBTSXdJaUI1TVQwaU1DSWdlREk5SWpFaUlIa3lQU0l4SWo0S0lDQWdJQ0FnUEhOMGIzQWdiMlptYzJWMFBTSXdKU0lnYzNSdmNDMWpiMnh2Y2owaUl6QmhNalF5TWlJdlBqeHpkRzl3SUc5bVpuTmxkRDBpTVRBd0pTSWdjM1J2Y0MxamIyeHZjajBpSXpBd01DSXZQZ29nSUNBZ1BDOXNhVzVsWVhKSGNtRmthV1Z1ZEQ0S0lDQWdJRHhzYVc1bFlYSkhjbUZrYVdWdWRDQnBaRDBpWnpFaUlIZ3hQU0kxTUNVaUlIa3hQU0l3SlNJZ2VESTlJakV3TUNVaUlIa3lQU0l4TURBbElqNEtJQ0FnSUNBZ1BITjBiM0FnYjJabWMyVjBQU0l3SlNJZ2MzUnZjQzFqYjJ4dmNqMGlJek5oWWpSak1pSXZQanh6ZEc5d0lHOW1abk5sZEQwaU1UQXdKU0lnYzNSdmNDMWpiMnh2Y2owaUl6RmlOR0kxTXlJdlBnb2dJQ0FnUEM5c2FXNWxZWEpIY21Ga2FXVnVkRDRLSUNBZ0lEeHNhVzVsWVhKSGNtRmthV1Z1ZENCcFpEMGlaeklpSUhneFBTSXdKU0lnZVRFOUlqQWxJaUI0TWowaU5UQWxJaUI1TWowaU1UQXdKU0krQ2lBZ0lDQWdJRHh6ZEc5d0lHOW1abk5sZEQwaU1DVWlJSE4wYjNBdFkyOXNiM0k5SWlNeVpqazVZVFVpTHo0OGMzUnZjQ0J2Wm1aelpYUTlJakV3TUNVaUlITjBiM0F0WTI5c2IzSTlJaU14TmpRd05ESWlMejRLSUNBZ0lEd3ZiR2x1WldGeVIzSmhaR2xsYm5RK0NpQWdQQzlrWldaelBnbzhMM04yWno0PSIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XX0=">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0iIzAzMGYwZSIvPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDAiIGZpbGw9InVybCgjYmcpIi8+CiAgPHBvbHlnb24gcG9pbnRzPSI5NiwyNCAxNTQsMTM4IDk2LDEwNiIgZmlsbD0idXJsKCNnMSkiLz4KICA8cG9seWdvbiBwb2ludHM9Ijk2LDI0IDM4LDEzOCA5NiwxMDYiIGZpbGw9InVybCgjZzIpIi8+CiAgPHBhdGggZD0iTTUwLDE0MiBROTYsMTEyIDE0MiwxNDIgTDEzMiwxNTggUTk2LDEzMCA2MCwxNTggWiIgZmlsbD0iIzFhMWExYSIvPgogIDxsaW5lIHgxPSI5NiIgeTE9IjI0IiB4Mj0iOTYiIHkyPSIxMDYiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjU1KSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICA8bGluZSB4MT0iOTYiIHkxPSIxMDYiIHgyPSIzOCIgeTI9IjEzOCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMykiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiAgPGxpbmUgeDE9Ijk2IiB5MT0iMTA2IiB4Mj0iMTU0IiB5Mj0iMTM4IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zKSIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBhMjQyMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwMCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzEiIHgxPSI1MCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNhYjRjMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFiNGI1MyIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzIiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iNTAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyZjk5YTUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNjQwNDIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgo8L3N2Zz4=">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0iIzAzMGYwZSIvPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDAiIGZpbGw9InVybCgjYmcpIi8+CiAgPHBvbHlnb24gcG9pbnRzPSI5NiwyNCAxNTQsMTM4IDk2LDEwNiIgZmlsbD0idXJsKCNnMSkiLz4KICA8cG9seWdvbiBwb2ludHM9Ijk2LDI0IDM4LDEzOCA5NiwxMDYiIGZpbGw9InVybCgjZzIpIi8+CiAgPHBhdGggZD0iTTUwLDE0MiBROTYsMTEyIDE0MiwxNDIgTDEzMiwxNTggUTk2LDEzMCA2MCwxNTggWiIgZmlsbD0iIzFhMWExYSIvPgogIDxsaW5lIHgxPSI5NiIgeTE9IjI0IiB4Mj0iOTYiIHkyPSIxMDYiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjU1KSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICA8bGluZSB4MT0iOTYiIHkxPSIxMDYiIHgyPSIzOCIgeTI9IjEzOCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMykiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiAgPGxpbmUgeDE9Ijk2IiB5MT0iMTA2IiB4Mj0iMTU0IiB5Mj0iMTM4IiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4zKSIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBhMjQyMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwMCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzEiIHgxPSI1MCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNhYjRjMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFiNGI1MyIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzIiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iNTAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyZjk5YTUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNjQwNDIiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgo8L3N2Zz4=">
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--teal:#2f99a5;--td:#1b4b53;--tl:rgba(47,153,165,0.13);
+  --gold:#c6a15b;--gd:#8c6b3f;--cream:#e6d8b8;
+  --red:#e05555;--green:#2faa6a;
+  --sf:#060f0e;--sf2:#0a1918;--sf3:#0e2220;
+  --br:rgba(47,153,165,0.13);--tx:#f7f9ff;--mu:rgba(230,216,184,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Raleway',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 55% 38% at 6% 4%,rgba(27,75,83,0.42) 0%,transparent 55%),
+  radial-gradient(ellipse 35% 25% at 94% 96%,rgba(47,153,165,0.08) 0%,transparent 55%),
+  linear-gradient(rgba(47,153,165,0.016) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(47,153,165,0.016) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,56px 56px,56px 56px}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh;position:relative;z-index:1}
+
+/* ══ SIDEBAR ══ */
+.sb{background:linear-gradient(170deg,#020d0c 0%,#000 100%);border-right:1px solid var(--br);
+  display:flex;flex-direction:column;padding-bottom:28px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:18px 20px 16px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:13px}
+.logo-icon{flex-shrink:0;width:44px;height:44px;background:rgba(0,0,0,0.5);
+  border:1px solid rgba(47,153,165,0.3);border-radius:10px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 20px rgba(47,153,165,0.15),inset 0 0 12px rgba(47,153,165,0.05)}
+.logo-icon svg{filter:drop-shadow(0 0 5px rgba(47,153,165,0.7))}
+.logo-info{display:flex;flex-direction:column;gap:2px}
+.logo-name{font-family:'Cinzel',serif;font-size:19px;font-weight:700;letter-spacing:2px;line-height:1;
+  background:linear-gradient(135deg,#2f99a5 0%,#c6a15b 60%,#e6d8b8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-tagline{font-size:7.5px;letter-spacing:2.5px;color:var(--mu);text-transform:uppercase;margin-top:1px}
+.sb-nav{padding:14px 10px 0;flex:1}
+.nl{font-size:8px;letter-spacing:3px;color:var(--mu);text-transform:uppercase;padding:0 8px;margin-bottom:5px;margin-top:12px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:7px;cursor:pointer;
+  font-size:12px;color:rgba(247,249,255,0.38);transition:all .2s;border:1px solid transparent;
+  margin-bottom:2px;position:relative}
+.ni:hover{color:var(--tx);background:rgba(47,153,165,0.07)}
+.ni.on{color:var(--teal);background:rgba(47,153,165,0.1);border-color:rgba(47,153,165,0.22)}
+.ni.on::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;
+  background:var(--teal);border-radius:0 2px 2px 0;box-shadow:0 0 8px var(--teal)}
+.sb-stats{margin:14px 10px 0;display:flex;flex-direction:column;gap:6px}
+.sbs{padding:10px 12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;position:relative;overflow:hidden}
+.sbs::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.sbs.t::before{background:var(--teal)}.sbs.r::before{background:var(--red)}.sbs.g::before{background:var(--gold)}
+.sbs-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:3px}
+.sbs-v{font-family:'Cinzel',serif;font-size:14px;font-weight:700;transition:all .3s}
+.meta-box{margin:10px 10px 0;padding:12px;background:var(--sf);border:1px solid var(--br);border-radius:8px}
+.meta-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.meta-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu)}
+.meta-pct{font-family:'Cinzel',serif;font-size:13px;color:var(--gold)}
+.meta-track{height:5px;background:var(--sf3);border-radius:5px;overflow:hidden;margin-bottom:5px}
+.meta-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--td),var(--teal));
+  transition:width .6s cubic-bezier(.4,0,.2,1);position:relative}
+.meta-fill::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px var(--teal)}
+.meta-sub{font-size:9px;color:var(--mu);display:flex;justify-content:space-between}
+.meta-cfg{cursor:pointer;color:var(--teal);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  background:none;border:none;font-family:'Raleway',sans-serif;padding:0;opacity:.7}
+.meta-cfg:hover{opacity:1}
+
+/* ══ SAVE ACTIONS (sidebar bottom) ══ */
+.sb-actions{margin:10px 10px 0;display:flex;flex-direction:column;gap:6px}
+.sb-action-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;
+  cursor:pointer;font-family:'Raleway',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:.5px;border:1px solid;transition:all .2s;text-transform:uppercase}
+.sb-action-btn.export{background:rgba(47,153,165,0.08);border-color:rgba(47,153,165,0.3);color:var(--teal)}
+.sb-action-btn.export:hover{background:rgba(47,153,165,0.16);border-color:var(--teal);box-shadow:0 0 14px rgba(47,153,165,0.2)}
+.sb-action-btn.reset{background:transparent;border-color:rgba(224,85,85,0.2);color:rgba(224,85,85,0.5)}
+.sb-action-btn.reset:hover{border-color:var(--red);color:var(--red)}
+
+/* AUTO-SAVE INDICATOR */
+.save-ind{position:fixed;bottom:20px;right:20px;z-index:999;
+  background:var(--sf);border:1px solid var(--br);border-radius:8px;
+  padding:8px 14px;font-size:10px;font-weight:600;letter-spacing:1px;
+  display:flex;align-items:center;gap:7px;color:var(--mu);
+  transition:all .3s;opacity:0;transform:translateY(10px);pointer-events:none}
+.save-ind.saved{opacity:1;transform:translateY(0);border-color:rgba(47,170,106,0.4);color:var(--green)}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* ══ TOPBAR ══ */
+.ct{display:flex;flex-direction:column;overflow-y:auto}
+.topbar{background:rgba(0,0,0,0.84);backdrop-filter:blur(20px);border-bottom:1px solid var(--br);
+  padding:0 26px;height:54px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:80}
+.tb-t{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--mu)}
+.tb-t b{color:var(--tx)}
+.lv{display:flex;align-items:center;gap:5px}
+.lv-d{width:6px;height:6px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 8px var(--teal);animation:bl 2s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}
+.lv-t{font-size:9px;letter-spacing:2px;color:var(--teal);text-transform:uppercase}
+.mode-toggle{margin-left:auto;display:flex;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px;gap:2px}
+.mtb{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;
+  color:rgba(247,249,255,0.32);transition:all .2s;border:none;background:none;font-family:'Raleway',sans-serif}
+.mtb.on{background:rgba(47,153,165,0.14);color:var(--teal)}
+.mtb:hover:not(.on){color:var(--tx)}
+.tabs{display:flex;gap:2px;margin-left:12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px}
+.tab{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;
+  color:rgba(247,249,255,0.32);transition:all .2s;border:none;background:none;font-family:'Raleway',sans-serif}
+.tab.on{background:rgba(47,153,165,0.14);color:var(--teal)}
+.tab:hover:not(.on){color:var(--tx)}
+
+/* ══ MAIN ══ */
+.main{padding:20px 26px 52px;display:flex;flex-direction:column;gap:16px}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.main>*{animation:fu .45s ease both}
+.main>*:nth-child(1){animation-delay:.04s}.main>*:nth-child(2){animation-delay:.09s}
+.main>*:nth-child(3){animation-delay:.14s}.main>*:nth-child(4){animation-delay:.19s}
+
+/* ══ KPIs ══ */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--sf);border:1px solid var(--br);border-radius:13px;
+  padding:18px 18px 14px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,0,0,.5)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.t::before{background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.kpi.r::before{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.kpi.g::before{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.kpi.gr::before{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.kpi-glow{position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.06;pointer-events:none}
+.kpi.t .kpi-glow{background:var(--teal)}.kpi.r .kpi-glow{background:var(--red)}
+.kpi.g .kpi-glow{background:var(--gold)}.kpi.gr .kpi-glow{background:var(--green)}
+.kpi-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:7px}
+.kpi-v{font-family:'Cinzel',serif;font-size:21px;font-weight:700;line-height:1;margin-bottom:10px;transition:all .4s}
+.kpi.t .kpi-v{color:var(--teal)}.kpi.r .kpi-v{color:var(--red)}
+.kpi.g .kpi-v{color:var(--gold)}.kpi.gr .kpi-v{color:var(--green)}
+.bdg{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-flex;gap:3px}
+.bdg.up{background:rgba(47,153,165,0.12);color:var(--teal)}
+.bdg.dn{background:rgba(224,85,85,0.12);color:var(--red)}
+.bdg.nt{background:rgba(198,161,91,0.1);color:var(--gold)}
+.bdg.gn{background:rgba(47,170,106,0.12);color:var(--green)}
+
+/* ══ PANELS ══ */
+.panel{background:var(--sf);border:1px solid var(--br);border-radius:13px;overflow:hidden}
+.ph{display:flex;align-items:center;padding:13px 18px;border-bottom:1px solid var(--br);gap:8px}
+.ph-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ph-t{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--cream)}
+.ph-s{margin-left:auto;font-size:10px;color:var(--mu)}
+.cw{padding:16px 18px}
+.g2{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.g22{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ══ HEATMAP ══ */
+.heatmap-wrap{padding:16px 18px}
+.hm-labels{display:flex;gap:2px;margin-bottom:4px;padding-left:38px}
+.hm-label{font-size:8px;color:var(--mu);letter-spacing:1px;flex:1;text-align:center}
+.hm-row{display:flex;align-items:center;gap:2px;margin-bottom:2px}
+.hm-yr{font-size:9px;color:var(--mu);width:36px;text-align:right;padding-right:6px;font-family:'Cinzel',serif}
+.hm-cell{flex:1;height:32px;border-radius:4px;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;
+  border:1px solid rgba(255,255,255,0.04)}
+.hm-cell:hover{transform:scale(1.12);box-shadow:0 0 12px rgba(47,153,165,0.4);z-index:2}
+.hm-cell.empty{background:var(--sf2);cursor:default}
+.hm-cell.empty:hover{transform:none;box-shadow:none}
+.hm-legend{display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end}
+.hm-leg-lbl{font-size:9px;color:var(--mu)}
+.hm-leg-cells{display:flex;gap:3px}
+.hm-leg-c{width:18px;height:12px;border-radius:2px}
+
+/* ══ TIMELINE ══ */
+.timeline-wrap{padding:14px 18px 8px;overflow-x:auto}
+.timeline{display:flex;align-items:center;position:relative;min-width:max-content}
+.timeline::before{content:'';position:absolute;top:50%;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--br),var(--br),transparent);transform:translateY(-50%)}
+.tl-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0 8px;
+  cursor:pointer;position:relative;transition:all .2s}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:2px solid;transition:all .2s;position:relative;z-index:1}
+.tl-item:hover .tl-dot{transform:scale(1.4)}
+.tl-item.on .tl-dot{width:18px;height:18px;box-shadow:0 0 12px currentColor}
+.tl-lbl{font-size:9px;color:var(--mu);white-space:nowrap;letter-spacing:.5px;transition:color .2s}
+.tl-item:hover .tl-lbl,.tl-item.on .tl-lbl{color:var(--tx)}
+.tl-val{font-size:8px;font-family:'Cinzel',serif;white-space:nowrap}
+
+/* ══ STATUS ══ */
+.st{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.5px;flex-shrink:0}
+.st.rcv{background:rgba(47,170,106,0.15);color:var(--green)}
+.st.pnd{background:rgba(255,184,0,0.12);color:#ffb800}
+.st.atd{background:rgba(224,85,85,0.15);color:var(--red)}
+
+/* ══ ENTRY FORM ══ */
+.month-sel{padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap}
+.ms-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);flex-shrink:0}
+.ms-pills{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.mp{padding:4px 10px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;
+  border:1px solid var(--br);background:transparent;color:var(--mu);transition:all .2s;font-family:'Raleway',sans-serif}
+.mp:hover{color:var(--tx);border-color:rgba(47,153,165,0.35)}
+.mp.on{background:rgba(47,153,165,0.14);border-color:var(--teal);color:var(--teal)}
+.entry-wrap{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ec-title{font-size:8px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px solid var(--br)}
+.ec-title.en{color:var(--teal)}.ec-title.sa{color:var(--red)}
+.col-hdr{display:flex;gap:7px;margin-bottom:5px;padding-right:22px}
+.ch-l{font-size:8px;letter-spacing:1.5px;color:var(--mu);text-transform:uppercase}
+.ch-desc{flex:1}.ch-date{flex:0 0 86px;text-align:center}.ch-val{flex:0 0 82px;text-align:right}.ch-st{flex:0 0 68px;text-align:center}
+.erow{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.lbl-i{flex:1 1 0;min-width:0;background:transparent;border:none;
+  border-bottom:1px solid var(--br);color:rgba(247,249,255,0.75);
+  font-family:'Raleway',sans-serif;font-size:11.5px;padding:5px 0;outline:none}
+.lbl-i:focus{border-bottom-color:var(--teal)}
+.date-wrap{flex:0 0 auto}
+.date-i{width:82px;background:var(--sf2);border:1px solid var(--br);color:var(--tx);
+  font-family:'Raleway',sans-serif;font-size:11px;border-radius:6px;
+  padding:5px 7px;outline:none;transition:border-color .2s,width .2s;text-align:center}
+.date-i:focus{border-color:var(--gold);width:96px}
+.date-i::placeholder{color:var(--mu);font-size:10px}
+.vw{flex:0 0 auto;position:relative}
+.vw span{position:absolute;left:7px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--mu);pointer-events:none}
+.vi{width:82px;min-width:72px;max-width:150px;background:var(--sf2);
+  border:1px solid var(--br);color:var(--tx);font-family:'Raleway',sans-serif;
+  font-size:12px;font-weight:700;border-radius:6px;padding:6px 6px 6px 22px;outline:none;transition:border-color .2s}
+.vi:focus{border-color:var(--teal)}
+.st-sel{flex:0 0 auto;appearance:none;background:var(--sf2);border:1px solid var(--br);
+  color:var(--mu);font-family:'Raleway',sans-serif;font-size:10px;
+  border-radius:6px;padding:5px 7px;outline:none;cursor:pointer;transition:all .2s}
+.st-sel.rcv{border-color:rgba(47,170,106,0.4);color:var(--green);background:rgba(47,170,106,0.08)}
+.st-sel.pnd{border-color:rgba(255,184,0,0.4);color:#ffb800;background:rgba(255,184,0,0.06)}
+.st-sel.atd{border-color:rgba(224,85,85,0.4);color:var(--red);background:rgba(224,85,85,0.08)}
+.del-btn{cursor:pointer;color:rgba(224,85,85,0.38);font-size:13px;padding:3px;flex-shrink:0;transition:color .2s}
+.del-btn:hover{color:var(--red)}
+.add-btn{display:flex;align-items:center;gap:5px;background:transparent;
+  border:1px dashed var(--br);color:var(--mu);font-family:'Raleway',sans-serif;font-size:10px;
+  border-radius:6px;padding:6px 11px;cursor:pointer;width:100%;transition:all .2s;margin-bottom:10px}
+.add-btn:hover{border-color:var(--teal);color:var(--teal)}
+.entry-summary{padding:11px 18px;background:rgba(47,153,165,0.05);border-top:1px solid var(--br);
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.es-item .es-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:3px}
+.es-item .es-v{font-family:'Cinzel',serif;font-size:15px;font-weight:700;transition:all .3s}
+.view-mode .erow input,.view-mode .erow select{pointer-events:none;opacity:.85}
+.view-mode .add-btn,.view-mode .del-btn{display:none}
+
+/* ══ TABLES ══ */
+.mt{width:100%;border-collapse:collapse}
+.mt th{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);
+  padding:7px 12px;text-align:right;border-bottom:1px solid var(--br);font-weight:500}
+.mt th:first-child{text-align:left}
+.mt td{padding:9px 12px;font-size:11.5px;border-bottom:1px solid rgba(47,153,165,0.04);text-align:right}
+.mt td:first-child{text-align:left;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.5px}
+.mt tr{cursor:pointer}.mt tr:hover td{background:rgba(47,153,165,0.05)}
+.mt .tot td{background:rgba(27,75,83,0.22);font-weight:700;border-top:1px solid var(--br);font-family:'Cinzel',serif}
+.bm{height:3px;border-radius:3px;margin-top:3px;min-width:3px}
+.pos{color:var(--teal)}.neg{color:var(--red)}
+
+/* ══ TX ══ */
+.tx-l{max-height:360px;overflow-y:auto}
+.tx{display:flex;align-items:center;gap:11px;padding:10px 18px;
+  border-bottom:1px solid rgba(47,153,165,0.04);transition:background .15s}
+.tx:hover{background:rgba(47,153,165,0.04)}
+.tx-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tx-in{flex:1;min-width:0}
+.tx-nm{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-dt{font-size:9px;color:var(--mu);margin-top:1px}
+.tx-vl{font-family:'Cinzel',serif;font-size:12px;font-weight:700;flex-shrink:0}
+
+/* ══ CATS ══ */
+.cats{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
+.cat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cat-nm{font-size:11.5px;color:rgba(247,249,255,.65)}
+.cat-vl{font-family:'Cinzel',serif;font-size:11px;color:var(--gold)}
+.cat-pct{font-size:9px;color:var(--mu)}
+.cat-tr{height:4px;background:var(--sf3);border-radius:4px;overflow:hidden}
+.cat-f{height:100%;border-radius:4px}
+
+/* ══ CF ══ */
+.cf{overflow-x:auto;padding:14px 18px}
+.cf table{width:100%;border-collapse:collapse}
+.cf th{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);
+  padding:7px 11px;text-align:right;border-bottom:1px solid var(--br);font-weight:500}
+.cf th:first-child{text-align:left}
+.cf td{padding:9px 11px;font-size:11.5px;border-bottom:1px solid rgba(47,153,165,0.04);text-align:right}
+.cf td:first-child{text-align:left;color:rgba(247,249,255,.62);font-weight:500}
+.cf .cf-s td{background:rgba(47,153,165,0.05);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
+  color:var(--teal);padding:7px 11px;text-align:left;border-bottom:1px solid var(--br)}
+.cf .cf-t td{background:rgba(27,75,83,.26);font-weight:700;border-top:1px solid var(--br);
+  border-bottom:1px solid var(--br);font-family:'Cinzel',serif}
+.cf .cf-r td{background:rgba(198,161,91,.07);font-weight:700;font-size:13px;color:var(--gold);font-family:'Cinzel',serif}
+
+/* ══ INSIGHTS ══ */
+.ins-g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ic{background:var(--sf);border:1px solid var(--br);border-radius:12px;padding:16px;transition:transform .2s}
+.ic:hover{transform:translateY(-2px)}
+.ic-ico{font-size:20px;margin-bottom:9px}
+.ic-t{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--cream);margin-bottom:5px}
+.ic-b{font-size:11.5px;color:rgba(247,249,255,.55);line-height:1.65}
+.ic-b strong{color:var(--gold)}
+
+/* ══ MODAL ══ */
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(8px);align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--sf);border:1px solid var(--br);border-radius:14px;padding:28px;width:400px}
+.modal h3{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-bottom:20px;letter-spacing:2px}
+.mf{margin-bottom:14px}
+.mf label{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:5px}
+.mf input{width:100%;background:var(--sf2);border:1px solid var(--br);color:var(--tx);
+  font-family:'Raleway',sans-serif;font-size:13px;border-radius:7px;padding:8px 11px;outline:none}
+.mf input:focus{border-color:var(--teal)}
+.m-act{display:flex;gap:9px;margin-top:20px}
+.btn-p{background:var(--teal);border:1px solid var(--teal);color:#000;font-family:'Raleway',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:1px;border-radius:7px;padding:9px 18px;cursor:pointer;flex:1;text-transform:uppercase}
+.btn-p:hover{background:var(--td)}
+.btn-o{background:transparent;border:1px solid rgba(198,161,91,0.3);color:var(--gold);font-family:'Raleway',sans-serif;
+  font-size:11px;font-weight:600;letter-spacing:1px;border-radius:7px;padding:9px 18px;cursor:pointer;flex:1;text-transform:uppercase}
+.btn-o:hover{border-color:var(--gold)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(47,153,165,.22);border-radius:3px}
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}.sb{display:none}
+  .kpis{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.g22{grid-template-columns:1fr}
+  .ins-g{grid-template-columns:1fr}.entry-wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:9999;background:#0a1918;border:1px solid rgba(47,153,165,0.5);border-radius:12px;
+  padding:12px 20px;display:none;align-items:center;gap:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(47,153,165,0.1);
+  backdrop-filter:blur(16px)">
+  <svg width="32" height="32" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+    <rect width="192" height="192" rx="32" fill="#030f0e"/>
+    <polygon points="96,24 154,138 96,106" fill="#2f99a5"/>
+    <polygon points="96,24 38,138 96,106" fill="#1b4b53"/>
+    <line x1="96" y1="24" x2="96" y2="106" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+  </svg>
+  <div>
+    <div style="font-family:'Cinzel',serif;font-size:13px;color:#f7f9ff;font-weight:600;letter-spacing:1px">ABRii DRE</div>
+    <div style="font-size:10px;color:rgba(230,216,184,0.5);letter-spacing:1px;margin-top:2px">INSTALAR COMO APP</div>
+  </div>
+  <button onclick="installPWA()" style="background:#2f99a5;border:none;color:#000;
+    font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;
+    border-radius:7px;padding:8px 18px;cursor:pointer;text-transform:uppercase;
+    transition:all .2s" onmouseover="this.style.background='#1b4b53';this.style.color='#fff'"
+    onmouseout="this.style.background='#2f99a5';this.style.color='#000'">
+    ⊕ Instalar
+  </button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'"
+    style="background:transparent;border:none;color:rgba(230,216,184,0.4);
+    font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+</div>
+
+<!-- AUTO-SAVE INDICATOR -->
+<div class="save-ind" id="save-ind">
+  <div class="save-dot"></div> Salvo automaticamente
+</div>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="logo-icon"><svg width="38" height="38" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="50,8 82,72 50,55" fill="url(#g1)"/>
+  <polygon points="50,8 18,72 50,55" fill="url(#g2)"/>
+  <path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#111"/>
+  <line x1="50" y1="8" x2="50" y2="55" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+  <line x1="50" y1="55" x2="18" y2="72" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <line x1="50" y1="55" x2="82" y2="72" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <defs>
+    <linearGradient id="g1" x1="50%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3ab4c2"/><stop offset="100%" stop-color="#1b4b53"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#2f99a5"/><stop offset="100%" stop-color="#164042"/>
+    </linearGradient>
+  </defs>
+</svg></div>
+    <div class="logo-info">
+      <span class="logo-name">ABRii</span>
+      <span class="logo-tagline">Prosperando o Brasil</span>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="nl">Módulos</div>
+    <div class="ni on" data-tab="overview">◈ &nbsp;Visão Geral</div>
+    <div class="ni" data-tab="lancamentos">⊞ &nbsp;Lançamentos</div>
+    <div class="ni" data-tab="monthly">◷ &nbsp;Mês a Mês</div>
+    <div class="ni" data-tab="cashflow">⟁ &nbsp;Fluxo de Caixa</div>
+    <div class="ni" data-tab="transactions">◎ &nbsp;Transações</div>
+    <div class="ni" data-tab="insights">⬡ &nbsp;Insights</div>
+  </div>
+  <div class="sb-stats">
+    <div class="nl" style="margin-top:4px">Acumulado Histórico</div>
+    <div class="sbs t"><div class="sbs-l">Total Entradas</div><div class="sbs-v" id="sb-e" style="color:var(--teal)">—</div></div>
+    <div class="sbs r"><div class="sbs-l">Total Saídas</div><div class="sbs-v" id="sb-s" style="color:var(--red)">—</div></div>
+    <div class="sbs g"><div class="sbs-l">Resultado Líquido</div><div class="sbs-v" id="sb-r" style="color:var(--gold)">—</div></div>
+  </div>
+  <div class="meta-box">
+    <div class="meta-head">
+      <span class="meta-lbl">Meta Mensal</span>
+      <button class="meta-cfg" onclick="openMeta()">⚙ Configurar</button>
+    </div>
+    <div class="meta-track"><div class="meta-fill" id="meta-fill" style="width:0%"></div></div>
+    <div class="meta-sub">
+      <span id="meta-cur">R$ 0</span>
+      <span class="meta-pct" id="meta-pct">0%</span>
+      <span id="meta-goal">/ R$ 30.000</span>
+    </div>
+  </div>
+  <div class="sb-actions">
+    <div class="nl" style="margin-top:4px">Backup</div>
+    <button class="sb-action-btn export" onclick="exportHTML()">
+      ↓ &nbsp;Exportar HTML (OneDrive)
+    </button>
+    <button class="sb-action-btn reset" onclick="clearStorageData()">
+      ↺ &nbsp;Resetar dados
+    </button>
+  </div>
+</aside>
+
+<!-- CONTENT -->
+<div class="ct" id="mainContent">
+  <header class="topbar">
+    <div class="tb-t">ABRii / <b id="tb-period">Visão Geral</b></div>
+    <div class="lv"><div class="lv-d"></div><span class="lv-t">Dados Reais</span></div>
+    <div class="mode-toggle">
+      <button class="mtb on" id="btn-edit" onclick="setMode('edit')">✎ Editar</button>
+      <button class="mtb" id="btn-view" onclick="setMode('view')">◉ Visualizar</button>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-tab="overview">Resumo</button>
+      <button class="tab" data-tab="lancamentos">Lançamentos</button>
+      <button class="tab" data-tab="monthly">Mês a Mês</button>
+      <button class="tab" data-tab="cashflow">Fluxo de Caixa</button>
+      <button class="tab" data-tab="transactions">Transações</button>
+      <button class="tab" data-tab="insights">Insights</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="kpis">
+      <div class="kpi t"><div class="kpi-glow"></div><div class="kpi-l">Receita Total</div><div class="kpi-v" id="kv-e">—</div><span class="bdg nt" id="kb-e">—</span></div>
+      <div class="kpi r"><div class="kpi-glow"></div><div class="kpi-l">Despesas Totais</div><div class="kpi-v" id="kv-s">—</div><span class="bdg dn" id="kb-s">—</span></div>
+      <div class="kpi g"><div class="kpi-glow"></div><div class="kpi-l">Resultado Líquido</div><div class="kpi-v" id="kv-r">—</div><span class="bdg nt" id="kb-r">—</span></div>
+      <div class="kpi gr"><div class="kpi-glow"></div><div class="kpi-l">A Receber (Pendente)</div><div class="kpi-v" id="kv-p">R$ 0</div><span class="bdg nt" id="kb-p">0 lançamentos</span></div>
+    </div>
+
+    <div id="tab-overview">
+      <div class="panel" style="margin-bottom:16px">
+        <div class="ph"><div class="ph-d" style="background:var(--gold)"></div>
+          <div class="ph-t">LINHA DO TEMPO</div><div class="ph-s">Clique para detalhar</div>
+        </div>
+        <div class="timeline-wrap"><div class="timeline" id="timeline"></div></div>
+      </div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--teal)"></div>
+            <div class="ph-t">RECEITAS × DESPESAS</div><div class="ph-s">Jun/24 – Mar/26</div>
+          </div>
+          <div class="cw"><canvas id="barC" height="200"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--gold)"></div>
+            <div class="ph-t">COMPOSIÇÃO DAS SAÍDAS</div>
+          </div>
+          <div class="cats" id="catList"></div>
+        </div>
+      </div>
+      <div class="g22">
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--cream)"></div>
+            <div class="ph-t">HEAT MAP ANUAL</div><div class="ph-s">Resultado por mês</div>
+          </div>
+          <div class="heatmap-wrap" id="heatmap"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--teal)"></div>
+            <div class="ph-t">SALDO ACUMULADO</div>
+          </div>
+          <div class="cw"><canvas id="lineC" height="175"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-lancamentos" style="display:none">
+      <div class="panel">
+        <div class="ph"><div class="ph-d" style="background:var(--gold)"></div>
+          <div class="ph-t">LANÇAMENTOS — SELECIONE O MÊS</div>
+          <div class="ph-s">Salvo automaticamente no navegador</div>
+        </div>
+        <div class="month-sel"><span class="ms-lbl">Mês:</span><div class="ms-pills" id="monthPills"></div></div>
+        <div class="entry-wrap" id="entryForms"></div>
+        <div class="entry-summary">
+          <div class="es-item"><div class="es-l">Receitas</div><div class="es-v" style="color:var(--teal)" id="es-e">—</div></div>
+          <div class="es-item"><div class="es-l">Despesas</div><div class="es-v" style="color:var(--red)" id="es-s">—</div></div>
+          <div class="es-item"><div class="es-l">Resultado</div><div class="es-v" id="es-r">—</div></div>
+          <div class="es-item"><div class="es-l">A Receber</div><div class="es-v" style="color:var(--green)" id="es-p">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-monthly" style="display:none">
+      <div class="panel">
+        <div class="ph"><div class="ph-d" style="background:var(--teal)"></div>
+          <div class="ph-t">DESEMPENHO MÊS A MÊS</div><div class="ph-s">Jun/2024 – Mar/2026</div>
+        </div>
+        <div style="padding:16px 18px;overflow-x:auto"><table class="mt" id="monthTbl"></table></div>
+      </div>
+    </div>
+
+    <div id="tab-cashflow" style="display:none">
+      <div class="panel">
+        <div class="ph"><div class="ph-d" style="background:var(--teal)"></div>
+          <div class="ph-t">FLUXO DE CAIXA — DRE SIMPLIFICADO</div>
+        </div>
+        <div class="cf"><table id="cfTbl"></table></div>
+      </div>
+    </div>
+
+    <div id="tab-transactions" style="display:none">
+      <div class="month-sel" style="background:var(--sf);border:1px solid var(--br);border-radius:13px">
+        <span class="ms-lbl">Filtrar:</span><div class="ms-pills" id="txPills"></div>
+      </div>
+      <div class="g22" style="margin-top:0">
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--teal)"></div>
+            <div class="ph-t">ENTRADAS</div><div class="ph-s" id="tx-e-lbl">—</div>
+          </div>
+          <div class="tx-l" id="txE"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="ph-d" style="background:var(--red)"></div>
+            <div class="ph-t">SAÍDAS</div><div class="ph-s" id="tx-s-lbl">—</div>
+          </div>
+          <div class="tx-l" id="txS"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-insights" style="display:none">
+      <div class="ins-g" id="insCards"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="overlay" id="metaOverlay">
+  <div class="modal">
+    <h3>⚙ META MENSAL</h3>
+    <div class="mf"><label>Meta de Receita (R$)</label><input type="number" id="meta-input" value="30000" step="1000"></div>
+    <div class="m-act">
+      <button class="btn-p" onclick="saveMeta()">Salvar</button>
+      <button class="btn-o" onclick="closeMeta()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PWA SERVICE WORKER REGISTRATION -->
+<script>
+// Register SW to enable PWA install prompt on localhost
+if('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE_NAME = 'abrii-dre-v2';
+    const ASSETS = ['/'];
+
+    self.addEventListener('install', event => {
+      self.skipWaiting();
+      event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+          try { return cache.addAll(ASSETS); } catch(e) { return Promise.resolve(); }
+        })
+      );
+    });
+
+    self.addEventListener('activate', event => {
+      event.waitUntil(
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+      );
+    });
+
+    self.addEventListener('fetch', event => {
+      event.respondWith(
+        caches.match(event.request).then(cached => {
+          return cached || fetch(event.request).catch(() => cached);
+        })
+      );
+    });
+  `;
+
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swURL  = URL.createObjectURL(swBlob);
+
+  navigator.serviceWorker.register(swURL, {scope: '/'})
+    .then(reg => {
+      console.log('ABRii PWA: Service Worker registrado', reg.scope);
+    })
+    .catch(err => {
+      console.warn('ABRii PWA: SW falhou (normal em file://)', err.message);
+    });
+}
+
+// Listen for beforeinstallprompt to show install button
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner
+  const banner = document.getElementById('pwa-banner');
+  if(banner) banner.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('pwa-banner');
+  if(banner) banner.style.display = 'none';
+  deferredPrompt = null;
+});
+
+function installPWA() {
+  if(deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      deferredPrompt = null;
+      const banner = document.getElementById('pwa-banner');
+      if(banner) banner.style.display = 'none';
+    });
+  }
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ══ DATA ══
+// ══ STORAGE KEY ══
+const STORAGE_KEY = 'abrii_dre_data';
+const META_KEY    = 'abrii_meta_goal';
+
+// Load from localStorage if available, else use embedded data
+const EMBEDDED = [{"label":"Jun-Jul/24","key":"2024-06","e":6720.0,"s":1742.46,"l":4977.54,"entradas":[{"desc":"DEVOLUÇÃO ADRIAN","val":850.0,"date":"23/07/2024"},{"desc":"MS AUTO CAR - 3ª Par.","val":1870.0,"date":"18/07/2024"},{"desc":"MS AUTO CAR - 2ª Par.","val":2000.0,"date":"02/07/2024"},{"desc":"MS AUTO CAR - 1ª Par.","val":2000.0,"date":"29/06/2024"}],"saidas":[{"desc":"Adrian - Empréstimo","val":207.89,"date":"30/07/2024"},{"desc":"Cartão Memória 32gb Câmera","val":40.0,"date":"18/07/2024"},{"desc":"Investimento - Ecomerce","val":130.0,"date":"18/07/2024"},{"desc":"Investimento - Ecomerce","val":10.0,"date":"16/07/2024"},{"desc":"Investimento - Câmera","val":280.0,"date":"12/07/2024"},{"desc":"Adrian - Empréstimo - Tela Cel.","val":350.0,"date":"12/07/2024"},{"desc":"Investimento - 1ª Par. Camisa","val":187.57,"date":"11/07/2024"},{"desc":"Investimento - Ecomerce","val":37.0,"date":"10/07/2024"},{"desc":"Adrian - Empréstimo","val":500.0,"date":"05/07/2024"}]},{"label":"Ago/24","key":"2024-08","e":692.4,"s":1052.48,"l":-360.08,"entradas":[{"desc":"WERNER - EDIÇÕES DE VIDEOS","val":360.0,"date":"15/08/2024"},{"desc":"DEVOLUÇÃO ADRIAN","val":207.89,"date":"08/08/2024"},{"desc":"RETORNO - ECOMERCE","val":124.51,"date":"06/08/2024"}],"saidas":[{"desc":"Investimento - 2ª Par. Camisa","val":187.58,"date":"13/08/2024"},{"desc":"Investimento - Lapela","val":277.9,"date":"13/08/2024"},{"desc":"Oferta Missionaria","val":587.0,"date":"08/08/2024"}]},{"label":"Set/24","key":"2024-09","e":525.0,"s":389.5,"l":135.5,"entradas":[{"desc":"COMISSÃO OMBRELONE","val":525.0,"date":"11/09/2024"}],"saidas":[{"desc":"Oferta Missionaria - Samuel","val":89.5,"date":"24/09/2024"},{"desc":"Invest. Trafêgo Pago Arte Villa","val":300.0,"date":"12/09/2024"}]},{"label":"Out/24","key":"2024-10","e":3230.0,"s":3809.27,"l":-579.27,"entradas":[{"desc":"DEVOLUÇÃO BRAYAN","val":150.0,"date":"25/10/2024"},{"desc":"DEVOLUÇÃO ADRIAN","val":200.0,"date":"11/10/2024"},{"desc":"DEVOLUÇÃO RAILAN","val":2355.0,"date":"11/10/2024"},{"desc":"COMISSÃO OMBRELONE","val":525.0,"date":"01/10/2024"}],"saidas":[{"desc":"Devolução Adrian - Brindes MS","val":104.27,"date":"30/10/2024"},{"desc":"Empréstimo Brayan","val":150.0,"date":"10/10/2024"},{"desc":"Empréstimo Railan","val":2355.0,"date":"09/10/2024"},{"desc":"Empréstimo Adrian","val":200.0,"date":"03/10/2024"}]},{"label":"Nov/24","key":"2024-11","e":2076.6,"s":2808.83,"l":-732.23,"entradas":[{"desc":"SINAL DE COMPRA - SPAZIO DECOR","val":1000.0,"date":"28/11/2024"},{"desc":"DEVOLUÇÃO ADRIAN - MKT","val":600.0,"date":"18/11/2024"},{"desc":"1ª PARTE - VENDA OMBRELONE","val":476.6,"date":"08/11/2024"}],"saidas":[{"desc":"Empréstimo Lucio","val":1900.0,"date":"20/11/2024"},{"desc":"Investimento Compra Curso Giu Beckers","val":247.0,"date":"19/11/2024"},{"desc":"Devolução Adrian - Campanha Arte villa","val":61.83,"date":"14/11/2024"},{"desc":"Empréstimo Adrian - MKT","val":600.0,"date":"11/11/2024"}]},{"label":"Dez/24","key":"2024-12","e":8430.67,"s":7495.69,"l":934.98,"entradas":[{"desc":"DI FABRICA - COMPRA MÉTODO","val":7364.24,"date":"07/12/2024"},{"desc":"COMISSÃO OMBRELONE","val":1066.43,"date":"01/12/2024"}],"saidas":[{"desc":"Tomio Tintas - SALA","val":52.57,"date":"27/12/2024"},{"desc":"Casa dos Parafusos Adrian - SALA","val":116.56,"date":"24/12/2024"},{"desc":"Casa dos Parafusos - SALA","val":17.62,"date":"23/12/2024"},{"desc":"Dizimo Brinquedos Maria betania","val":520.0,"date":"22/12/2024"},{"desc":"Dizimo Cachorro Quente Maria betania","val":137.77,"date":"21/12/2024"},{"desc":"Dizimo Pães Maria betania","val":160.0,"date":"21/12/2024"},{"desc":"Shoppe compra - SALA","val":4749.06,"date":"20/12/2024"},{"desc":"Casa dos Parafusos - SALA","val":55.86,"date":"20/12/2024"},{"desc":"Ilha tintas Massa corrida - SALA","val":38.0,"date":"20/12/2024"},{"desc":"Casa dos Parafusos - SALA","val":132.65,"date":"20/12/2024"},{"desc":"Chapa em MDF Possamai - SALA","val":890.0,"date":"19/12/2024"},{"desc":"Adrian - Fita adesisa pra pintar - SALA","val":38.0,"date":"19/12/2024"},{"desc":"Tinta cinza das paredes - SALA","val":181.3,"date":"19/12/2024"},{"desc":"Camisetas do Lucio","val":129.3,"date":"14/12/2024"},{"desc":"MAP - cama elastica da inauguração","val":50.0,"date":"12/12/2024"},{"desc":"Curso de Roteiro - Penoni","val":77.0,"date":"12/12/2024"},{"desc":"Devolução da compra Acelera-se Railan","val":50.0,"date":"11/12/2024"},{"desc":"Devolução da compra Acelera-se Brayan","val":50.0,"date":"10/12/2024"},{"desc":"Compra Acelera-se Lucio","val":50.0,"date":"10/12/2024"}]},{"label":"Jan/25","key":"2025-01","e":2250.0,"s":5787.55,"l":-3537.55,"entradas":[{"desc":"DEVOLUÇÃO - EMPRESTIMO ADRIAN","val":1300.0,"date":"26/01/2025"},{"desc":"DEVOLUÇÃO LUCIO - PRIMEIRA PARTE","val":200.0,"date":"22/01/2025"},{"desc":"MARIA  GUBER - ALUGUEL","val":750.0,"date":"10/01/2025"}],"saidas":[{"desc":"Confeitando - Embalagem brindes Di fábrica","val":13.25,"date":"30/01/2025"},{"desc":"Mercado - Brindes da Di Fábrica","val":45.53,"date":"29/01/2025"},{"desc":"Impressão - Relatório Andre Imunizadora","val":10.8,"date":"29/01/2025"},{"desc":"Mercado - Cápsula de café","val":16.98,"date":"28/01/2025"},{"desc":"Embalagem - papel toalha banheiro","val":19.94,"date":"28/01/2025"},{"desc":"Mercado - Vassoura/utensílhos banheiro","val":32.39,"date":"28/01/2025"},{"desc":"Empréstimo Adrian","val":1300.0,"date":"25/01/2025"},{"desc":"Arte Villa - Ferro das mesas","val":200.0,"date":"21/01/2025"},{"desc":"Maria Eduarda - capsula de café","val":14.0,"date":"20/01/2025"},{"desc":"Fuzivel tomada - SALA","val":10.0,"date":"17/01/2025"},{"desc":"Tomio Tintas - SALA","val":145.26,"date":"17/01/2025"},{"desc":"Casa dos Parafusos - SALA","val":1.5,"date":"17/01/2025"},{"desc":"Super 1,99 - utencilhos do banheiro - SALA","val":82.45,"date":"17/01/2025"},{"desc":"Shoppe - utencilhos do banheiro - SALA","val":169.98,"date":"17/01/2025"},{"desc":"Mensalidade do Chat GPT 4 - SALA","val":125.0,"date":"16/01/2025"},{"desc":"Tomio Tintas - SALA","val":5.9,"date":"11/01/2025"},{"desc":"Aluguel - SALA","val":2500.0,"date":"10/01/2025"},{"desc":"Casa da Mangueira estilete - SALA","val":10.0,"date":"10/01/2025"},{"desc":"Mercado limpeza - SALA","val":54.96,"date":"10/01/2025"},{"desc":"Pão padaria - SALA","val":4.9,"date":"10/01/2025"},{"desc":"Ilha tintas - SALA","val":41.0,"date":"10/01/2025"},{"desc":"Tomio Tintas - SALA","val":39.4,"date":"09/01/2025"},{"desc":"Tomio Tintas - SALA","val":13.81,"date":"08/01/2025"},{"desc":"Casa dos Parafusos - SALA","val":17.5,"date":"08/01/2025"},{"desc":"Mercado pão e quejo - SALA","val":47.62,"date":"08/01/2025"},{"desc":"Ilha tintas - SALA","val":2.4,"date":"07/01/2025"},{"desc":"Copia das chaves - SALA","val":135.0,"date":"07/01/2025"},{"desc":"Hopus cadeiras - SALA","val":30.0,"date":"07/01/2025"},{"desc":"Ilha tintas - SALA","val":4.0,"date":"06/01/2025"},{"desc":"Beto tintas - SALA","val":14.0,"date":"06/01/2025"},{"desc":"Tomio Tintas - SALA","val":26.75,"date":"06/01/2025"},{"desc":"Superbonder Mercado - SALA","val":8.99,"date":"06/01/2025"},{"desc":"Ilha tintas - SALA","val":23.0,"date":"06/01/2025"},{"desc":"Shoppe compra Espelhos - SALA","val":214.7,"date":"04/01/2025"},{"desc":"Shoppe compra Papel da mesa - SALA","val":257.7,"date":"04/01/2025"},{"desc":"Mercado - SALA","val":18.0,"date":"04/01/2025"},{"desc":"Superbonder Mercado - SALA","val":9.0,"date":"03/01/2025"},{"desc":"Tomio Tintas - SALA","val":29.52,"date":"03/01/2025"},{"desc":"Casa da Mangueira - SALA","val":6.0,"date":"03/01/2025"},{"desc":"Casa dos Parafusos - SALA","val":4.0,"date":"03/01/2025"},{"desc":"Tomio Tintas - SALA","val":23.7,"date":"03/01/2025"},{"desc":"Superbonder Mercado - SALA","val":6.0,"date":"02/01/2025"},{"desc":"Beto tintas - SALA","val":14.0,"date":"02/01/2025"},{"desc":"Ilha tintas - SALA","val":11.0,"date":"02/01/2025"},{"desc":"Casa dos Parafusos - SALA","val":27.62,"date":"02/01/2025"}]},{"label":"Fev/25","key":"2025-02","e":1650.0,"s":2974.4,"l":-1324.4,"entradas":[{"desc":"DEVOLUÇÃO LUCIO - SEGUNDA PARTE","val":800.0,"date":"20/02/2025"},{"desc":"MARIA  GUBER - ALUGUEL","val":750.0,"date":"15/02/2025"},{"desc":"DEVOLUÇÃO - EMPRESTIMO ADRIAN","val":100.0,"date":"07/02/2025"}],"saidas":[{"desc":"Impressão batacard","val":7.0,"date":"21/02/2025"},{"desc":"Aluguel - SALA","val":2805.91,"date":"20/02/2025"},{"desc":"Impressão batacard","val":8.0,"date":"18/02/2025"},{"desc":"Cápsula de café","val":19.99,"date":"05/02/2025"},{"desc":"Impressão Diagnostico","val":9.5,"date":"05/02/2025"},{"desc":"Empréstimo Adrian","val":100.0,"date":"04/02/2025"},{"desc":"Impressão - Checklists Método PAV","val":24.0,"date":"03/02/2025"}]},{"label":"Mar/25","key":"2025-03","e":3526.0,"s":3066.7,"l":459.3,"entradas":[{"desc":"MAP - DEVOLUÇÃO MAO DE OBRA ÁGUA","val":224.0,"date":"31/03/2025"},{"desc":"SINAL COUTO IMUNIZADORA - CONSULTORIA","val":1602.0,"date":"25/03/2025"},{"desc":"DEVOLUÇÃO LUCIO - TERCEIRA PARTE","val":500.0,"date":"21/03/2025"},{"desc":"PABULO - 1ª PARTE - PRESTAÇÃO DE SERVIÇO","val":1200.0,"date":"11/03/2025"}],"saidas":[{"desc":"Aluguel - SALA","val":2805.91,"date":"25/03/2025"},{"desc":"Lojão Astral - Sino (Vendas)","val":14.99,"date":"21/03/2025"},{"desc":"Impressao Batacard","val":1.0,"date":"19/03/2025"},{"desc":"Josias - Mao de Obra Agua da sala","val":224.0,"date":"19/03/2025"},{"desc":"Impressão batacard","val":11.8,"date":"14/03/2025"},{"desc":"Impressão batacard","val":9.0,"date":"05/03/2025"}]},{"label":"Abr/25","key":"2025-04","e":3000.0,"s":3319.41,"l":-319.41,"entradas":[{"desc":"Troca - Pix/Dinheiro - Esposa Adrian","val":100.0,"date":"29/04/2025"},{"desc":"DEVOLUÇÃO LUCIO - QUARTA PARTE - FIM","val":400.0,"date":"18/04/2025"},{"desc":"PABULO - 2ª PARTE - PRESTAÇÃO DE SERVIÇO","val":1000.0,"date":"17/04/2025"},{"desc":"CONTRATO SPAZIO - DINHEIRO","val":1500.0,"date":"08/04/2025"}],"saidas":[{"desc":"Troca - Pix/Dinheiro - Esposa Adrian","val":100.0,"date":"29/04/2025"},{"desc":"Aluguel - SALA","val":1500.0,"date":"23/04/2025"},{"desc":"Aluguel - SALA","val":1305.91,"date":"22/04/2025"},{"desc":"Campanhas Spazio DECOR","val":100.0,"date":"14/04/2025"},{"desc":"Batacard","val":4.0,"date":"14/04/2025"},{"desc":"Batacard","val":8.0,"date":"14/04/2025"},{"desc":"Impressão - Proposta Indadonto","val":4.0,"date":"08/04/2025"},{"desc":"Impressao Batacard - Contrato e Script","val":26.0,"date":"07/04/2025"},{"desc":"Cafeteria - Clente Rafael","val":32.0,"date":"02/04/2025"},{"desc":"Almoço - Balneario HUB","val":139.5,"date":"01/04/2025"},{"desc":"Gasolina - Balneario HUB","val":100.0,"date":"01/04/2025"}]},{"label":"Mai/25","key":"2025-05","e":22387.9,"s":13224.27,"l":9163.63,"entradas":[{"desc":"CONSULTORIA - COUTO S.A - MÉTODO P.A.V","val":12822.6,"date":"21/05/2025"},{"desc":"DANI - BRINDES MÉTODO P.A.V - DEVOLUÇÃO","val":225.0,"date":"19/05/2025"},{"desc":"INDADONTO - MÉTODO G.A.T","val":5437.0,"date":"14/05/2025"},{"desc":"AÇAÍ POP - MÉTODO G.A.T","val":3903.3,"date":"13/05/2025"}],"saidas":[{"desc":"1ª Parte Design Vini","val":180.0,"date":"31/05/2025"},{"desc":"Dizimo - Missionario Samuel","val":500.0,"date":"30/05/2025"},{"desc":"Dizimo - CTV","val":360.0,"date":"30/05/2025"},{"desc":"Dizimo - Luta CTV","val":159.9,"date":"30/05/2025"},{"desc":"Dizimo - Pastora Maria Betania","val":500.0,"date":"30/05/2025"},{"desc":"Estacionamento - Network AND","val":14.0,"date":"29/05/2025"},{"desc":"Aluguel - Sala de aluguel fotografia","val":100.0,"date":"29/05/2025"},{"desc":"CRM Chatcenter - Acai POP","val":179.9,"date":"29/05/2025"},{"desc":"CRM Chatcenter - Spazio","val":179.9,"date":"29/05/2025"},{"desc":"Mercado - Utensilhos (rodo, pano, produtos)","val":148.71,"date":"27/05/2025"},{"desc":"Uber Brayan - Indadonto, etc","val":37.88,"date":"27/05/2025"},{"desc":"Pagamento Michelle - colaboradora","val":700.0,"date":"23/05/2025"},{"desc":"Dokassa - Papel Toalha","val":33.8,"date":"22/05/2025"},{"desc":"Bordados Camisetas","val":96.0,"date":"22/05/2025"},{"desc":"Restante pagamento Campanhas - Spazio Decor","val":900.0,"date":"22/05/2025"},{"desc":"Curso - Divulgaçao Telas Indoor","val":97.0,"date":"22/05/2025"},{"desc":"2ª Parte - Campanhas - Açaí POP","val":500.0,"date":"22/05/2025"},{"desc":"Aluguel - SALA","val":2805.91,"date":"22/05/2025"},{"desc":"Churrasco ABRii","val":117.0,"date":"21/05/2025"},{"desc":"1ª Parte - Campanhas - Açaí POP","val":500.0,"date":"21/05/2025"},{"desc":"Oferta/Dizímo - CTV","val":200.0,"date":"20/05/2025"},{"desc":"Brayan - UBER - Di FABRICA","val":30.77,"date":"19/05/2025"},{"desc":"Dani - Brindes Método P.A.V - 2ª Parte","val":137.0,"date":"19/05/2025"},{"desc":"Shoppe - Investimentos ABRii Academy","val":1135.6,"date":"16/05/2025"},{"desc":"Casas Zimermann - Camisa Social","val":455.0,"date":"15/05/2025"},{"desc":"Dani - Brindes Método P.A.V - 1ª Parte","val":137.5,"date":"15/05/2025"},{"desc":"Brayan - UBER - Di FABRICA","val":29.63,"date":"15/05/2025"},{"desc":"Empréstimo Adrian","val":500.0,"date":"15/05/2025"},{"desc":"Maria Guber - G.A.T - AÇAÍ POP e INDADONTO","val":1800.0,"date":"14/05/2025"},{"desc":"Campanhas Spazio DECOR","val":350.0,"date":"13/05/2025"},{"desc":"Mercado - lixo/leite","val":28.57,"date":"09/05/2025"},{"desc":"Churrasco abrii","val":73.65,"date":"08/05/2025"},{"desc":"Campanhas Spazio DECOR","val":150.0,"date":"07/05/2025"},{"desc":"Café boas-vindas Michelle","val":16.5,"date":"06/05/2025"},{"desc":"Cesta/embalagem boas-vindas Michelle","val":9.0,"date":"06/05/2025"},{"desc":"Cesta/embalagem boas-vindas Michelle","val":9.25,"date":"06/05/2025"},{"desc":"Produtos da Cesta  boas-vindas Michelle","val":53.37,"date":"06/05/2025"}]},{"label":"Jun/25","key":"2025-06","e":6903.3,"s":10649.97,"l":-3746.67,"entradas":[{"desc":"Segunda parte Pagamento - Spazio","val":500.0,"date":"18/06/2025"},{"desc":"Segunda parte Pagamento - Spazio","val":1000.0,"date":"18/06/2025"},{"desc":"Pagamento - Açaí Pop","val":3903.3,"date":"16/06/2025"},{"desc":"Primeira parte Pagamento - Spazio","val":1500.0,"date":"10/06/2025"}],"saidas":[{"desc":"2ª Parte. Campanhas Spazio - Growth Partner","val":750.0,"date":"30/06/2025"},{"desc":"Pizza - Di fábrica","val":98.0,"date":"26/06/2025"},{"desc":"Embalagem - Di Fábrica","val":17.25,"date":"26/06/2025"},{"desc":"Alimentos cesta - Di Fábrica","val":117.09,"date":"26/06/2025"},{"desc":"Batacard - Docs Di Fábrica","val":30.0,"date":"26/06/2025"},{"desc":"1ª Parte Design Vini","val":180.0,"date":"26/06/2025"},{"desc":"Tráfego Pago - Açai POP","val":1000.0,"date":"24/06/2025"},{"desc":"Bastão de LED - Paraguai","val":70.0,"date":"23/06/2025"},{"desc":"ATM R SERVICOS DE COBRANCA 13H52","val":75.0,"date":"20/06/2025"},{"desc":"Aluguel SALA","val":2805.91,"date":"20/06/2025"},{"desc":"Maria - Parceira de negócio","val":1800.0,"date":"20/06/2025"},{"desc":"Michelle - Lid. Operacional","val":1400.0,"date":"20/06/2025"},{"desc":"Café Reunião Mauricio - Vilant Barber","val":13.97,"date":"19/06/2025"},{"desc":"Ilha Tinta - Parede Logomarca","val":38.0,"date":"18/06/2025"},{"desc":"Go coffe - Vídeo 01","val":26.0,"date":"18/06/2025"},{"desc":"Clarice Artes - Logomarca ABRii MDF","val":109.0,"date":"17/06/2025"},{"desc":"Uber do Brayan - Indadonto","val":9.38,"date":"17/06/2025"},{"desc":"Batacard - Impressão Treinamento A.P.E","val":26.0,"date":"16/06/2025"},{"desc":"Chip para celular","val":30.49,"date":"16/06/2025"},{"desc":"Padaria - Cuca Sala","val":19.73,"date":"13/06/2025"},{"desc":"Plantas Sala","val":95.0,"date":"11/06/2025"},{"desc":"Clarice Artes - Logomarca ABRii MDF","val":53.9,"date":"11/06/2025"},{"desc":"Dokassa - Produtos de Limpeza","val":36.8,"date":"11/06/2025"},{"desc":"Michelle - Lid. Operacional","val":200.0,"date":"11/06/2025"},{"desc":"Mercado - Café Jandaia","val":35.99,"date":"11/06/2025"},{"desc":"Dokassa - Canetões recarregaveis","val":39.8,"date":"11/06/2025"},{"desc":"Mercado - Utensilhos para café","val":21.59,"date":"11/06/2025"},{"desc":"Térmica e Chaleira Elétrica","val":79.8,"date":"11/06/2025"},{"desc":"1ª Parte. Campanhas Spazio - Growth Partner","val":750.0,"date":"10/06/2025"},{"desc":"Campanhas Indadonto (-R$ 685,57)","val":1000.0,"date":"09/06/2025"},{"desc":"André Couto - Janta Macarronada","val":120.0,"date":"06/06/2025"},{"desc":"Cafeteria - Café Carolina Corretora","val":24.0,"date":"06/06/2025"},{"desc":"Shoppe - Calça ABRii","val":67.0,"date":"05/06/2025"},{"desc":"Dizimo - Missionario Jhonata","val":500.0,"date":"04/06/2025"},{"desc":"Mercado - Leite e Bolo","val":22.61,"date":"03/06/2025"}]},{"label":"Jul/25","key":"2025-07","e":6365.0,"s":8771.05,"l":-2406.05,"entradas":[{"desc":"Pagamento - Afiliado - Kauan - Dinheiro","val":47.0,"date":"28/07/2025"},{"desc":"1ª Parcela/3 - Clínica Libelle - (Indoor)","val":247.0,"date":"24/07/2025"},{"desc":"1ª Parcela/3 - Restaurante Mirim -  (Indoor)","val":287.0,"date":"18/07/2025"},{"desc":"Pagamento - Afiliado - Luiz","val":47.0,"date":"21/07/2025"},{"desc":"Pagamento - Afiliado - Vitor P.","val":47.0,"date":"21/07/2025"},{"desc":"1ª Parcela/3 - João Paisagista (Indoor)","val":287.0,"date":"18/07/2025"},{"desc":"Pagamento G.A.T - Açaí POP","val":3903.0,"date":"16/07/2025"},{"desc":"1ª Parte - Spazio DECOR","val":1500.0,"date":"09/07/2025"}],"saidas":[{"desc":"Indajet - Adesivos - Brindes Clientes","val":5.5,"date":"31/07/2025"},{"desc":"Papelaria - Brindes clientes","val":44.75,"date":"31/07/2025"},{"desc":"Camisetas - Thais Design","val":27.05,"date":"31/07/2025"},{"desc":"Chatcenter - Acai Pop","val":179.9,"date":"30/07/2025"},{"desc":"1ª Parte - Campanhas - Açaí POP","val":500.0,"date":"29/07/2025"},{"desc":"Mercado - 16 barra de chocolate - BRINDES","val":127.84,"date":"29/07/2025"},{"desc":"Papel toalha - Marcaplast","val":33.0,"date":"29/07/2025"},{"desc":"Bordados - Camisa Maria - dinheiro","val":20.0,"date":"28/07/2025"},{"desc":"Padaria - Lanche Adrian/Railan - Apres. Afiliados","val":40.8,"date":"25/07/2025"},{"desc":"Dokassa - Refil canetao","val":19.98,"date":"25/07/2025"},{"desc":"Adrian - Mercado - Café e Erva Chimas","val":47.57,"date":"24/07/2025"},{"desc":"Pagamento Maria","val":900.0,"date":"22/07/2025"},{"desc":"Cuca - Presente Adrian","val":35.0,"date":"22/07/2025"},{"desc":"Daniela - Caneca - Presente Adrian","val":40.0,"date":"21/07/2025"},{"desc":"Cooper - Presentes Adrian","val":26.28,"date":"21/07/2025"},{"desc":"Confeitare - Presentes Adrian","val":55.15,"date":"21/07/2025"},{"desc":"Batacad - Presentes Adrian","val":10.0,"date":"21/07/2025"},{"desc":"Shoppe - Camiseta Maria","val":26.77,"date":"21/07/2025"},{"desc":"Willian - Aluguel Totens","val":1059.8,"date":"21/07/2025"},{"desc":"Aluguel Sala - Caetano","val":600.0,"date":"20/07/2025"},{"desc":"Aluguel Sala - Caetano","val":1900.0,"date":"20/07/2025"},{"desc":"Pagamento Michelle","val":1500.0,"date":"20/07/2025"},{"desc":"Treinamento de Vendas - Brayan - Vendas","val":29.9,"date":"19/07/2025"},{"desc":"Pagamento Arte Vila - Pabulo OK","val":485.0,"date":"19/07/2025"},{"desc":"Indajet - QR Code","val":12.5,"date":"15/07/2025"},{"desc":"Michelle - VALE","val":100.0,"date":"14/07/2025"},{"desc":"Batacard - Impressao Material Indoor","val":42.0,"date":"14/07/2025"},{"desc":"Kirvano - Dashboard avançado","val":67.9,"date":"14/07/2025"},{"desc":"Tinta para Impressora","val":45.0,"date":"14/07/2025"},{"desc":"iCloud Celular Railan","val":66.9,"date":"14/07/2025"},{"desc":"Padaria - Cuca - Alinhamento Sócios Sáb","val":15.0,"date":"12/07/2025"},{"desc":"Michelle - Uber moto (Aparelho Indoor)","val":25.94,"date":"11/07/2025"},{"desc":"Batacard - Impressao Material Indoor","val":32.0,"date":"10/07/2025"},{"desc":"Casa dos Parafusos - T para TV","val":10.9,"date":"09/07/2025"},{"desc":"Cooper - Café","val":36.99,"date":"09/07/2025"},{"desc":"Casa dos Parafusos - Tomada para TV","val":7.9,"date":"09/07/2025"},{"desc":"Indajet - Novos Adesivos","val":20.0,"date":"08/07/2025"},{"desc":"Tomio - Materiais Totem Galeria","val":9.85,"date":"08/07/2025"},{"desc":"Tomio - Materiais Totem Villant","val":56.4,"date":"07/07/2025"},{"desc":"Indajet - Adesivos Totens","val":58.5,"date":"05/07/2025"},{"desc":"Treinamento Partner","val":47.0,"date":"04/07/2025"},{"desc":"Padaria - Cuca - Reunião Indadonto","val":30.0,"date":"03/07/2025"},{"desc":"Chatcenter - Spazio Decor","val":179.9,"date":"02/07/2025"},{"desc":"Chatcenter - Acai Pop","val":179.9,"date":"01/07/2025"},{"desc":"Cuca - Iza Indadonto","val":12.18,"date":"01/07/2025"}]},{"label":"Ago/25","key":"2025-08","e":11785.78,"s":6952.79,"l":4832.99,"entradas":[{"desc":"Pagamento Tráfego Pago - AC CLEAN","val":1787.0,"date":"26/08/2025"},{"desc":"Pagamento Growth Partener - SÓ ALEGRIA","val":2500.0,"date":"26/08/2025"},{"desc":"Marlene - PEIXARIA - PAGAMENTO INDOOR","val":297.0,"date":"26/08/2025"},{"desc":"Comissão - Spazio Decor - Mesa","val":571.78,"date":"22/08/2025"},{"desc":"Pagamento Growth Partener - DI FÁBRICA","val":2500.0,"date":"22/08/2025"},{"desc":"Viviane - INDAGÁS - PAGAMENTO INDOOR","val":287.0,"date":"22/08/2025"},{"desc":"Aline - CANTINHO DA ALINE - PAGAMENTO INDOOR","val":257.0,"date":"20/08/2025"},{"desc":"Mateus - ML IMPORTS - PAGAMENTO INDOOR","val":297.0,"date":"17/08/2025"},{"desc":"Suelen - FOTÓGRAFA - PAGAMENTO INDOOR","val":287.0,"date":"16/08/2025"},{"desc":"Larissa - LN Emporio - PAGAMENTO INDOOR","val":347.0,"date":"15/08/2025"},{"desc":"Afiliado - José - Acesso ao Indoor","val":47.0,"date":"14/08/2025"},{"desc":"1ª Parte - Campanhas Só Alegria","val":1000.0,"date":"12/08/2025"},{"desc":"Fabio - L&T OUTLET - PAGAMENTO INDOOR","val":247.0,"date":"08/08/2025"},{"desc":"1ª Parte - Campanhas Di Fábrica","val":500.0,"date":"08/08/2025"},{"desc":"Guilherme e By juh - PAGAMENTO INDOOR","val":574.0,"date":"07/08/2025"},{"desc":"José - INDAFORRO - PAGAMENTO INDOOR","val":287.0,"date":"05/08/2025"}],"saidas":[{"desc":"Restaurante Mirim - Oferta Marmita Andarilho","val":27.0,"date":"27/08/2025"},{"desc":"Mercado - Alcino - Chocolate sem açucar","val":13.48,"date":"27/08/2025"},{"desc":"Michelle - Café","val":34.99,"date":"27/08/2025"},{"desc":"Aluguel Totem","val":779.8,"date":"25/08/2025"},{"desc":"Flex Dock de Carga - iPhone 7 da ABRii","val":16.0,"date":"22/08/2025"},{"desc":"1ª Parte - Campanha - Di Fábrica","val":500.0,"date":"22/08/2025"},{"desc":"Tomio - 2 Canaleta Indoor Arena Quintino + Parafusos","val":22.88,"date":"22/08/2025"},{"desc":"Pagamento - MICHELLE","val":1600.0,"date":"20/08/2025"},{"desc":"Pagamento ALUGUEL SALA","val":1250.0,"date":"20/08/2025"},{"desc":"Pagamento ALUGUEL SALA","val":1250.0,"date":"20/08/2025"},{"desc":"Tomio - 2 Canaleta Indoor Arena Quintino","val":20.71,"date":"20/08/2025"},{"desc":"Padaria - Café Reunião Noturna ABRii - Growth","val":21.65,"date":"19/08/2025"},{"desc":"Mercado - Papel higienico e filtro de café","val":21.48,"date":"19/08/2025"},{"desc":"Michelle - Café","val":36.99,"date":"18/08/2025"},{"desc":"iCloud Celular Railan","val":66.9,"date":"16/08/2025"},{"desc":"Notion + G4 Educação (Nubank) + Adrian","val":397.32,"date":"16/08/2025"},{"desc":"Volei - Turma ABRii","val":68.0,"date":"15/08/2025"},{"desc":"Batacad - Cordão Crachá - Afiliados","val":18.0,"date":"12/08/2025"},{"desc":"Devolução - Afiliado VITOR","val":47.0,"date":"12/08/2025"},{"desc":"Lanche - hora extra Thais (Podcast)","val":24.0,"date":"11/08/2025"},{"desc":"Bordado - Camisas Indoor/Thais","val":70.0,"date":"11/08/2025"},{"desc":"Papelaria","val":10.8,"date":"08/08/2025"},{"desc":"Climb Player - Totens","val":39.59,"date":"08/08/2025"},{"desc":"Erick - Criador da Página do AC Clean","val":300.0,"date":"07/08/2025"},{"desc":"Treinamento Adrian - Marketing e Growth","val":19.9,"date":"06/08/2025"},{"desc":"Mercado - Bolo 3 meses Michelle","val":18.16,"date":"06/08/2025"},{"desc":"Michelle - Café e Água oxigenada","val":41.98,"date":"06/08/2025"},{"desc":"Desinfetante - Oferta (casa recuperação)","val":25.0,"date":"05/08/2025"},{"desc":"Dominio - Landpage - AC CLEAN","val":40.0,"date":"04/08/2025"},{"desc":"Caneta - Para Brindes clientes","val":4.25,"date":"01/08/2025"},{"desc":"Camisas Indoor - Camisa Thais","val":166.91,"date":"01/08/2025"}]},{"label":"Set/25","key":"2025-09","e":12580.93,"s":10320.93,"l":2260.0,"entradas":[{"desc":"PAGAMENTO - GROWTH PARTNER - Só Alegria  (2ª Parte)","val":1500.0,"date":"30/09/2025"},{"desc":"PAGAMENTO - GROWTH PARTNER - Só Alegria (falta R$ 1.500)","val":1000.0,"date":"26/09/2025"},{"desc":"1º / 3º - Gustavo - GUSTAVO GRAH - TOTEM","val":340.0,"date":"26/09/2025"},{"desc":"PAGAMENTO - TRÁFEGO PAGO - AC CLEAN","val":1787.0,"date":"25/09/2025"},{"desc":"2º e 3º - Priscila - DON PEDRO - TOTEM","val":247.0,"date":"24/09/2025"},{"desc":"2º e 3º - Mateus - ML IMPORTS - TOTEM","val":287.0,"date":"23/09/2025"},{"desc":"Valor de Campanha - João Fusinato BJJ","val":300.0,"date":"19/09/2025"},{"desc":"2º e 3º - JULIA - BY JUH - TOTEM","val":287.0,"date":"22/09/2025"},{"desc":"2º e 3º - VIVIANE - INDAGAS - TOTEM","val":287.0,"date":"21/09/2025"},{"desc":"2º e 3º - LIBELLE - CLINICA - TOTEM","val":247.0,"date":"20/09/2025"},{"desc":"PAGAMENTO - GROWTH PARTNER - Acaí POP","val":2207.0,"date":"19/09/2025"},{"desc":"2º e 3º - JOÃO - PAISAGISTA - TOTEM","val":545.57,"date":"18/09/2025"},{"desc":"Valor para Campanhas - Di Fábrica","val":1326.0,"date":"17/09/2025"},{"desc":"2º e 3º - FÁBIO - L&T OUTLET - TOTEM","val":468.0,"date":"16/09/2025"},{"desc":"2º/3 - ALINE - CANTINHO - TOTEM","val":257.0,"date":"16/09/2025"},{"desc":"2º/3 - SUELEN - FOTOGRAFA - TOTEM (cancel)","val":287.0,"date":"15/09/2025"},{"desc":"2º/3 - LARISSA - LN EMPÓRIO - TOTEM","val":347.0,"date":"15/09/2025"},{"desc":"2º/3 - MATEUS - RESTAURANTE - TOTEM","val":287.0,"date":"15/09/2025"},{"desc":"2º/3 - GUILHERME - CORRETOR - TOTEM","val":287.0,"date":"10/09/2025"},{"desc":"2º/3 - JÓSE - INDAFORRO - TOTEM","val":287.0,"date":"08/09/2025"}],"saidas":[{"desc":"Valor de Campanhas - João BJJ","val":300.0,"date":"26/09/2025"},{"desc":"Adesivos - Indoor","val":90.0,"date":"26/09/2025"},{"desc":"Aluguel - Totens","val":2020.33,"date":"25/09/2025"},{"desc":"Kauan Afiliado - Comissões","val":96.0,"date":"24/09/2025"},{"desc":"Aluguel - sala (segunda parte)","val":1250.0,"date":"22/09/2025"},{"desc":"Aluguel - sala (primeira parte)","val":1250.0,"date":"22/09/2025"},{"desc":"Pagamento - Michelle","val":1600.0,"date":"22/09/2025"},{"desc":"Campanha META - SÓ ALEGRIA","val":500.0,"date":"15/09/2025"},{"desc":"Mercado - Água Sanitária","val":16.99,"date":"13/09/2025"},{"desc":"Padaria - Café de alinhamento Railan e Adrian","val":32.0,"date":"12/09/2025"},{"desc":"Quadro de Planejamento Semanal","val":75.95,"date":"12/09/2025"},{"desc":"Calça Alfaiate - Brayan","val":75.9,"date":"12/09/2025"},{"desc":"Pote de Açaí POP","val":20.0,"date":"11/09/2025"},{"desc":"Chocolate para offboarding - INDADONTO","val":26.89,"date":"11/09/2025"},{"desc":"Campanha Indoor META - ABRii Academy","val":500.0,"date":"11/09/2025"},{"desc":"Shoppe - Spot de luz e Suporte monitor","val":209.76,"date":"10/09/2025"},{"desc":"Climb Player - Sitema - 5 totens","val":98.96,"date":"08/09/2025"},{"desc":"Mercado - Café e fita durex","val":39.98,"date":"06/09/2025"},{"desc":"Salário - Thais - R$ 200,00 de Bônus","val":1400.0,"date":"05/09/2025"},{"desc":"Bônus Michelle","val":400.0,"date":"05/09/2025"},{"desc":"Mercado - Folha A4 500pág - Fita 3M 2m","val":68.27,"date":"05/09/2025"},{"desc":"Adrian Sócio - Gasolina","val":30.0,"date":"03/09/2025"},{"desc":"Livro - Presente Maria (Terceirizada)","val":40.0,"date":"23/09/2025"},{"desc":"ChatCenter - Açaí POP","val":179.9,"date":"02/09/2025"}]},{"label":"Out/25","key":"2025-10","e":13935.02,"s":14498.26,"l":-563.24,"entradas":[{"desc":"Valor de campanha - João Fusinato BJJ (dinheiro)","val":300.0,"date":"31/10/2025"},{"desc":"Di fabrica - honorario ABRii (Growth partner) DINHEIRO","val":1500.0,"date":"28/10/2025"},{"desc":"Devolução empréstimo Adrian (quitado)","val":486.0,"date":"28/10/2025"},{"desc":"AC Clean - honorario - ABRii (Trafego pago)","val":1787.0,"date":"28/10/2025"},{"desc":"Só Alegria - honorario ABRii (Growth partner)","val":2500.0,"date":"27/10/2025"},{"desc":"Emporio Peixaria - 3/3 - indoor","val":297.0,"date":"27/10/2025"},{"desc":"Don pedro - 3/6 - Indoor","val":247.0,"date":"24/10/2025"},{"desc":"Devolução - Empréstimo Brayan","val":100.0,"date":"24/10/2025"},{"desc":"LN Emporio - 3/3 - indoor (saldo após permuta)","val":197.0,"date":"22/10/2025"},{"desc":"Restaurante Mirim - 3/9 - indoor","val":287.0,"date":"22/10/2025"},{"desc":"By Juh - 3/9 - Indoor","val":287.0,"date":"22/10/2025"},{"desc":"Indagas - 3/3 - Indoor","val":287.0,"date":"22/10/2025"},{"desc":"Clinica Libelle - 3/3 - Indoor","val":247.0,"date":"20/10/2025"},{"desc":"Devolução - Empréstimo Adrian","val":590.0,"date":"18/10/2025"},{"desc":"Açaí pop - Honorario ABRii (Growth partner) DINHEIRO","val":2207.0,"date":"17/10/2025"},{"desc":"ML imports - 3/3 - indoor","val":286.92,"date":"16/10/2025"},{"desc":"1ª Parte - Campanhas - Di Fábrica (Growth partner)","val":1500.0,"date":"16/10/2025"},{"desc":"Aline modas indoor - 3/6","val":257.0,"date":"15/10/2025"},{"desc":"1/12 - indaportas - totem","val":240.0,"date":"14/10/2025"},{"desc":"Guilherme corretor indoor - 3/3 (renovou +6 meses)","val":287.0,"date":"14/10/2025"},{"desc":"Indaforro indoor - 3/3 (renovou +3 meses)","val":285.1,"date":"13/10/2025"}],"saidas":[{"desc":"Higielimp - papel toalha","val":25.0,"date":"31/10/2025"},{"desc":"Padaria: bolo (3 meses Thais)","val":41.0,"date":"31/10/2025"},{"desc":"Chatcenter CRM - Açaí pop - Growth partner","val":179.9,"date":"28/10/2025"},{"desc":"Empréstimo Adrian","val":50.0,"date":"28/10/2025"},{"desc":"Aluguel - Totens (fornecedor)","val":2020.33,"date":"27/10/2025"},{"desc":"Afiliado: pagamento de comissao (indoor)","val":72.7,"date":"27/10/2025"},{"desc":"Padaria: rosca e um doce (para a equipe)","val":25.38,"date":"27/10/2025"},{"desc":"Mercado: Café","val":34.99,"date":"26/10/2025"},{"desc":"Empréstimo Adrian","val":200.0,"date":"24/10/2025"},{"desc":"Campanhas TP - Di Fabrica - Outubro - Grotwh partner","val":1500.0,"date":"23/10/2025"},{"desc":"Mercado: Presente Fran (acai pop)","val":62.38,"date":"23/10/2025"},{"desc":"Campanhas TP - So alegria OUTUBRO (saldo ainda de R$ 1.260)","val":240.0,"date":"22/10/2025"},{"desc":"Empréstimo Brayan","val":100.0,"date":"22/10/2025"},{"desc":"Pagamento - MARIA (Terceirizada)","val":500.0,"date":"21/10/2025"},{"desc":"Aluguel - SALA","val":2500.0,"date":"20/10/2025"},{"desc":"Empréstimo Adrian","val":661.0,"date":"17/10/2025"},{"desc":"Bem bom salgados","val":70.0,"date":"17/10/2025"},{"desc":"Fatura Nubank (Curso G4, CRM agendor, assinatura microsoft)","val":388.75,"date":"16/10/2025"},{"desc":"Açaí Pop - Pago para colaboradoras (confraternização)","val":49.61,"date":"15/10/2025"},{"desc":"Ingresso - treinamento H2 soluções","val":96.0,"date":"15/10/2025"},{"desc":"Mercado - fruteira e porta copos","val":45.13,"date":"15/10/2025"},{"desc":"Padaria: rosca para o time","val":14.56,"date":"14/10/2025"},{"desc":"Mercado: chocolates brindes clientes e produtos limpeza","val":135.08,"date":"14/10/2025"},{"desc":"Michelle - Salário + valor do café (adiantado)","val":1654.99,"date":"14/10/2025"},{"desc":"Recarga celular ABRii","val":20.0,"date":"09/10/2025"},{"desc":"Teste - boleto pagbank","val":5.0,"date":"09/10/2025"},{"desc":"Climb Player (sistema do indoor)","val":98.96,"date":"08/10/2025"},{"desc":"Michelle (produtos de limpeza)","val":57.7,"date":"08/10/2025"},{"desc":"Michelle - Premio bônus","val":350.0,"date":"07/10/2025"},{"desc":"Thais - Salário + bonus","val":1550.0,"date":"07/10/2025"},{"desc":"Padaria: (brownie para colaboradoras Thais e Michelle)","val":27.0,"date":"07/10/2025"},{"desc":"Airbnb - ExpoSP (4 dias)","val":718.71,"date":"06/10/2025"},{"desc":"Passagem - ida/volta - ExpoSP","val":694.33,"date":"06/10/2025"},{"desc":"Compra de Planilha Financeira","val":46.9,"date":"03/10/2025"},{"desc":"Mercado - Café, fita 3m e Filtro de Café","val":82.96,"date":"02/10/2025"},{"desc":"Chatcenter - Açaí Pop","val":179.9,"date":"01/10/2025"}]},{"label":"Nov/25","key":"2025-11","e":10393.32,"s":11457.44,"l":-1064.12,"entradas":[{"desc":"1/12 - 3A ESTÉTICA - totem","val":247.0,"date":"28/12/2025"},{"desc":"MÉTODO A.P.E - 3A ESTÉTICA AUTOMOTIVA","val":3829.32,"date":"28/11/2025"},{"desc":"Honorário ABRii - Só Alegria - Pendente R$ 1.984","val":1000.0,"date":"26/11/2025"},{"desc":"Honorário ABRii - Di fabrica - Pendente R$ 1.500 (750)","val":750.0,"date":"26/11/2025"},{"desc":"4/9 - By Juh - totem","val":287.0,"date":"25/11/2025"},{"desc":"4/9 - Guilherme Nardi - totem","val":287.0,"date":"21/11/2025"},{"desc":"Honorário ABRii - Di fabrica - Pendente R$ 2.250","val":750.0,"date":"21/11/2025"},{"desc":"Honorário ABRii - Açai Pop","val":2207.0,"date":"18/11/2025"},{"desc":"4/6 - Aline modas indoor - totem","val":257.0,"date":"17/11/2025"},{"desc":"4/9 - Restaurante Mirim - totem","val":287.0,"date":"15/11/2025"},{"desc":"1/12 - Alegria da bicharada - totem","val":247.0,"date":"14/11/2025"},{"desc":"Teste - boleto Pagbank","val":5.0,"date":"13/11/2025"},{"desc":"2/12 - indaportas - totem","val":240.0,"date":"13/11/2025"}],"saidas":[{"desc":"Empréstimo - Adrian (PENDENTE)","val":120.0,"date":"29/11/2025"},{"desc":"Pizza - Reunião de sócios","val":108.0,"date":"28/11/2025"},{"desc":"ChatCenter - Açaí Pop","val":179.9,"date":"25/11/2025"},{"desc":"Aluguel - TOTENS","val":2020.33,"date":"25/11/2025"},{"desc":"Padaria - Cuca - Visita Couto Imunizadora","val":31.82,"date":"25/11/2025"},{"desc":"Café - Brayan","val":35.0,"date":"24/11/2025"},{"desc":"Aluguel - SALA","val":2500.0,"date":"21/11/2025"},{"desc":"Padaria - Cuca - Palestra Rafael corretor","val":30.0,"date":"21/11/2025"},{"desc":"Salario - Michelle","val":1600.0,"date":"20/11/2025"},{"desc":"Maria Guber - último pagamento","val":600.0,"date":"20/11/2025"},{"desc":"Cesta de presente - para AC Clean","val":134.69,"date":"20/11/2025"},{"desc":"Uber aeroporto Navegantes -> estacionamento Navegantes (G4 valley)","val":16.97,"date":"17/11/2025"},{"desc":"Uber (airbnb) -> Aeroporto Congonhas (G4 valley)","val":25.93,"date":"17/11/2025"},{"desc":"Uber Aeroporto Congonhas ->  airbnb (G4 valley)","val":32.93,"date":"13/11/2025"},{"desc":"Uber (estacionamento navegantes)->  aeroporto navegantes (G4 valley)","val":5.32,"date":"13/11/2025"},{"desc":"Gasolina (G4 valley)","val":100.0,"date":"13/11/2025"},{"desc":"Cartucho impressora + café (michelle)","val":80.0,"date":"12/11/2025"},{"desc":"Conserto ventilador (saulo)","val":190.0,"date":"12/11/2025"},{"desc":"Cartório - Regulamento Mei Michelle","val":7.95,"date":"11/11/2025"},{"desc":"Teste - boleto pagbank","val":5.0,"date":"10/11/2025"},{"desc":"Climb player - assinatura dos totens","val":98.96,"date":"10/11/2025"},{"desc":"ABRii - Campanhas TP","val":500.0,"date":"07/11/2025"},{"desc":"Cartório - Regulamento Mei Michelle","val":7.95,"date":"07/11/2025"},{"desc":"Thais: Salario + bonus","val":1600.0,"date":"07/11/2025"},{"desc":"Dokassa - Cartucho canetoes","val":29.47,"date":"05/11/2025"},{"desc":"Mercado: Café","val":37.98,"date":"05/11/2025"},{"desc":"Joao BJJ - Campanhas TP","val":300.0,"date":"03/11/2025"},{"desc":"Shoppe - Buzina comemoracao","val":59.24,"date":"03/11/2025"},{"desc":"Campanhas TP - So alegria NOVEMBRO (R$ 260)","val":1000.0,"date":"01/11/2025"}]},{"label":"Dez/25","key":"2025-12","e":20529.13,"s":13553.47,"l":6975.66,"entradas":[{"desc":"Honorário ABRii - AC Clean (Dezembro)","val":1785.11,"date":"30/12/2025"},{"desc":"5/9 - By Juh - totem","val":287.0,"date":"29/12/2025"},{"desc":"5/6 - Indaforro - Totem","val":287.0,"date":"29/12/2025"},{"desc":"Honorário ABRii - Só Alegria (R$ 1.984 PENDENTE)","val":1000.0,"date":"26/12/2025"},{"desc":"ChatCenter - Açaí Pop","val":179.9,"date":"26/12/2025"},{"desc":"Valor para Trafego Pago - Di Fábrica","val":750.0,"date":"23/12/2025"},{"desc":"Só Alegria - OFERTA PROJETO DO SÓFA","val":100.0,"date":"23/12/2025"},{"desc":"Fersary - OFERTA PROJETO DO SÓFA","val":100.0,"date":"23/12/2025"},{"desc":"1/2 - Conserta Smart - totem","val":247.0,"date":"23/12/2025"},{"desc":"Casa Forte - OFERTA PROJETO DO SÓFA","val":100.0,"date":"22/12/2025"},{"desc":"Couto Saude Ambiental - OFERTA PROJETO DO SÓFA","val":100.0,"date":"19/12/2025"},{"desc":"Alegria da Bicharada - OFERTA PROJETO DO SÓFA","val":100.0,"date":"19/12/2025"},{"desc":"3A Estética - OFERTA PROJETO DO SÓFA","val":100.0,"date":"19/12/2025"},{"desc":"Indadonto - OFERTA PROJETO DO SÓFA","val":100.0,"date":"18/12/2025"},{"desc":"Don Pedro - OFERTA PROJETO DO SÓFA","val":100.0,"date":"18/12/2025"},{"desc":"Honorário ABRii - Di fabrica","val":1500.0,"date":"22/12/2025"},{"desc":"2/12 - 3A ESTÉTICA - totem","val":247.0,"date":"21/12/2025"},{"desc":"Honorário ABRii - Quintino Indaial/Blumenau","val":3000.0,"date":"19/12/2025"},{"desc":"5/9 - Restaurante Mirim - totem","val":287.0,"date":"17/12/2025"},{"desc":"Honorário + Tráfego - Pizzaria Nações (mês 01)","val":3497.0,"date":"16/12/2025"},{"desc":"5/6 - Aline modas - totem","val":257.0,"date":"15/12/2025"},{"desc":"Valor para Tráfego Pago - Só Alegria","val":733.1,"date":"13/12/2025"},{"desc":"1/12 - Pizzaria Nações - totem","val":245.11,"date":"12/12/2025"},{"desc":"Empréstimo - Adrian","val":120.0,"date":"09/12/2025"},{"desc":"2/12 - Alegria da bicharada - totem","val":247.0,"date":"09/12/2025"},{"desc":"Honorário ABRii - Só Alegria (NOV)","val":984.0,"date":"08/12/2025"},{"desc":"4/6 - Don Pedro - Totem","val":247.0,"date":"05/12/2025"},{"desc":"Teste - boleto/pix recorrente","val":4.91,"date":"04/12/2025"},{"desc":"Di fabrica - Pendencia de Nov OK (campanhas)","val":750.0,"date":"04/12/2025"},{"desc":"Honorário ABRii - Só Alegria - Pendente R$ 984,00","val":1000.0,"date":"02/12/2025"},{"desc":"4/6 - Indaforro - Totem","val":287.0,"date":"01/12/2025"},{"desc":"Honorário ABRii - AC Clean (novembro)","val":1787.0,"date":"01/12/2025"}],"saidas":[{"desc":"Valor para Trafego PAgo - Só Alegria","val":740.0,"date":"29/12/2025"},{"desc":"ChatCenter - Açaí Pop","val":179.9,"date":"26/12/2025"},{"desc":"Pagamento - Aluguel totens","val":1942.33,"date":"26/12/2025"},{"desc":"Reconher Contrato Thais - Cartório","val":7.95,"date":"22/12/2025"},{"desc":"Aluguel SALA Comercial","val":2500.0,"date":"22/12/2025"},{"desc":"Salário MICHELLE","val":1600.0,"date":"22/12/2025"},{"desc":"Confraternizacao ABRii - Bebida","val":36.43,"date":"21/12/2025"},{"desc":"Confraternizacao ABRii - comidas","val":358.3,"date":"21/12/2025"},{"desc":"Adrian - Prolabore?","val":500.0,"date":"20/12/2025"},{"desc":"Confeitare - brindes para entregar aos clientes","val":22.3,"date":"19/12/2025"},{"desc":"Mercado - Brindes para o time / entregar aos clientes","val":493.04,"date":"19/12/2025"},{"desc":"Padaria - Cuca e Rosca","val":34.33,"date":"19/12/2025"},{"desc":"MAP - PARCELA DO CONDOMINIO","val":500.0,"date":"18/12/2025"},{"desc":"Fatura NUBANK - ABRii","val":488.53,"date":"18/12/2025"},{"desc":"Poker Networking - Railan (bebida)","val":34.0,"date":"17/12/2025"},{"desc":"Brindes para clientes (sashe de café)","val":31.9,"date":"16/12/2025"},{"desc":"Brindes para clientes (livro)","val":61.98,"date":"15/12/2025"},{"desc":"Picolés para colaboradores + sócios","val":37.5,"date":"15/12/2025"},{"desc":"Reuniao dos sócios - charuto","val":15.0,"date":"11/12/2025"},{"desc":"Reuniao dos sócios - vinho","val":24.69,"date":"11/12/2025"},{"desc":"Climb player - totem","val":121.12,"date":"11/12/2025"},{"desc":"Café Escritório","val":39.98,"date":"11/12/2025"},{"desc":"Dokassa - Produtos de limpeza","val":94.19,"date":"11/12/2025"},{"desc":"Campanhas Tráfego Pago - Só Alegria (1ª Parte)","val":260.0,"date":"11/12/2025"},{"desc":"Café Escritório (Michelle)","val":35.0,"date":"09/12/2025"},{"desc":"Poker Networking - Railan","val":200.0,"date":"09/12/2025"},{"desc":"Poker Networking - Brayan","val":200.0,"date":"09/12/2025"},{"desc":"Campanhas Tráfego Pago - Di Fábrica","val":750.0,"date":"08/12/2025"},{"desc":"Michelle: bônus","val":400.0,"date":"06/12/2025"},{"desc":"Thais: Salario + bonus","val":1600.0,"date":"06/12/2025"},{"desc":"Teste - boleto/pix recorrente","val":5.0,"date":"04/12/2025"},{"desc":"ERP - Odoo","val":240.0,"date":"03/12/2025"}]},{"label":"Jan/26","key":"2026-01","e":23247.82,"s":22448.86,"l":798.96,"entradas":[{"desc":"3/12 - 3A ESTÉTICA - totem","val":247.0,"date":"30/01/2026"},{"desc":"Honorário - Só Alegria (último)","val":3000.0,"date":"30/01/2026"},{"desc":"6/9 - By Juh - totem","val":287.0,"date":"28/01/2026"},{"desc":"1/3 - TAI MODAS - totem","val":447.0,"date":"28/01/2026"},{"desc":"Valor para Tráfego Pago - Di Fábrica","val":200.0,"date":"26/01/2026"},{"desc":"5/6 - Don Pedro - Totem","val":247.0,"date":"23/01/2026"},{"desc":"Honorário ABRii - Arena Quintino - Bnu e Indaial","val":3000.0,"date":"21/01/2026"},{"desc":"Valor para Tráfego Pago - Só Alegria","val":390.0,"date":"21/01/2026"},{"desc":"1/2 - Conserta Smart - totem (churn)","val":247.0,"date":"21/01/2026"},{"desc":"Honorário ABRii - Di fabrica","val":1500.0,"date":"20/01/2026"},{"desc":"6/9 - Restaurante Mirim - totem","val":287.0,"date":"20/01/2026"},{"desc":"2ª Parte - Método A.P.E - Machu Picchu Matte (PAGO)","val":3216.6,"date":"17/01/2026"},{"desc":"6/6 - Cantinho da Aline - totem (churn)","val":257.0,"date":"16/01/2026"},{"desc":"Honorário + Tráfego - Pizzaria Nações (mês 02)","val":3497.0,"date":"16/01/2026"},{"desc":"Indaportas - FIM DE CONTRATO - totem (churn)","val":473.11,"date":"15/01/2026"},{"desc":"Honorário - Chalé Encantos","val":1000.0,"date":"13/01/2026"},{"desc":"3/12 - Alegria da bicharada - totem","val":247.0,"date":"10/01/2026"},{"desc":"2/12 - Pizzaria Nações - totem","val":247.0,"date":"10/01/2026"},{"desc":"1ª Parte - Método A.P.E - Machu Picchu Matte","val":689.0,"date":"06/01/2026"},{"desc":"Honorário ABRii - AC Clean (Dezembro)","val":1785.11,"date":"02/01/2026"},{"desc":"Pagamento honorário cliente Só Alegria (segunda parte)","val":1984.0,"date":"02/01/2026"}],"saidas":[{"desc":"Reembolso metade - Indaportas","val":240.0,"date":"29/01/2026"},{"desc":"Tia Duda Contraturno - Michelle","val":50.0,"date":"29/01/2026"},{"desc":"Reconhecimento Declaração (Michelle) - Tab. Moser","val":16.56,"date":"29/01/2026"},{"desc":"Bebidas Reuniao de Socio - To GO Mercado","val":44.8,"date":"28/01/2026"},{"desc":"Adiantamento Prolabore - Adrian","val":200.0,"date":"28/01/2026"},{"desc":"Canaleta Sala - Tomio Mat. Construcao","val":25.32,"date":"28/01/2026"},{"desc":"Produtos de Limpeza - Higiez Limp","val":72.67,"date":"28/01/2026"},{"desc":"Café + sashe de acucar - Cooper Mercado","val":47.67,"date":"28/01/2026"},{"desc":"Reconhecimento Contrato (Ana e Carla) - Tab. Moser","val":16.56,"date":"28/01/2026"},{"desc":"Dani Personalizados - 1ª Parte (Brindes","val":85.0,"date":"27/01/2026"},{"desc":"Carne - Poker da Lider","val":30.0,"date":"27/01/2026"},{"desc":"Blindes - Poker da Lider","val":75.0,"date":"26/01/2026"},{"desc":"Bebidas - Poker da Lider","val":34.96,"date":"26/01/2026"},{"desc":"Valor para Campanhas - Di Fabrica","val":200.0,"date":"26/01/2026"},{"desc":"Adesivos Totens (4 totens)","val":103.0,"date":"26/01/2026"},{"desc":"Aluguel dos Totens","val":2020.33,"date":"26/01/2026"},{"desc":"Microfone - Kaidi","val":70.89,"date":"23/01/2026"},{"desc":"Fonte - Ring light (mercado livre)","val":64.64,"date":"23/01/2026"},{"desc":"Oferta - Projeto Natal (Adriano)","val":680.0,"date":"22/01/2026"},{"desc":"Valor para campanhas Tráfego Pago - Só Alegria","val":390.0,"date":"22/01/2026"},{"desc":"Michelle - Café, Rosca, Creche","val":73.75,"date":"22/01/2026"},{"desc":"Aluguel Sala Comercial","val":2500.0,"date":"21/01/2026"},{"desc":"Fatura NUBANK","val":545.94,"date":"19/01/2026"},{"desc":"Confeitare - Brindes Carla e Ana","val":45.0,"date":"19/01/2026"},{"desc":"Cooper - Brindes Carla e Ana","val":117.06,"date":"19/01/2026"},{"desc":"Tabelionato Moser - Reconher descontrato Thais","val":16.56,"date":"19/01/2026"},{"desc":"Aspirador de pó","val":305.0,"date":"17/01/2026"},{"desc":"Brayan - 2 Vinhos e 1 Charuto - Reunião Sócios","val":87.29,"date":"17/01/2026"},{"desc":"Demissão + bônus e direitos - Thais","val":1800.0,"date":"16/01/2026"},{"desc":"Salário Adiantado - Michelle","val":1600.0,"date":"15/01/2026"},{"desc":"ERP - Odoo","val":240.0,"date":"14/01/2026"},{"desc":"Climb Player","val":98.96,"date":"09/01/2026"},{"desc":"Estacionamento - Blumenau - Macchu Pichu","val":13.0,"date":"06/01/2026"},{"desc":"Campanhas ABRii - Documentário","val":100.0,"date":"06/01/2026"},{"desc":"Salario + bonus: Thais","val":1600.0,"date":"05/01/2026"},{"desc":"Bonus Michelle","val":400.0,"date":"05/01/2026"},{"desc":"Valor para campanhas Tráfego Pago - Di Fábrica","val":750.0,"date":"05/01/2026"},{"desc":"Prolabore - Railan","val":2688.9,"date":"03/01/2026"},{"desc":"Prolabore - Brayan","val":3000.0,"date":"03/01/2026"},{"desc":"Prolabore - Adrian","val":2000.0,"date":"03/01/2026"}]},{"label":"Fev/26","key":"2026-02","e":19830.49,"s":21902.06,"l":-2071.57,"entradas":[{"desc":"7/9 - By Juh - totem","val":287.0,"date":"26/02/2026"},{"desc":"Honorário + Tráfego - Pizzaria Nações (mês 03)","val":3497.0,"date":"26/02/2026"},{"desc":"4/12 - 3A ESTÉTICA - totem","val":247.0,"date":"26/02/2026"},{"desc":"Comissoes - Chalé Encantos","val":558.75,"date":"25/02/2026"},{"desc":"Honorário ABRii - Chalés Encantos","val":1000.0,"date":"25/02/2026"},{"desc":"Honorário ABRii - Di fábrica - R$ 200 (tráfego)","val":1700.0,"date":"24/02/2026"},{"desc":"Comissões - Josiel Barcelos","val":3155.4,"date":"24/02/2026"},{"desc":"3/6 - Honorário ABRii - Quintino Indaial/Blumenau","val":3000.0,"date":"23/02/2026"},{"desc":"7/9 - Restaurante Mirim - totem","val":287.0,"date":"20/02/2026"},{"desc":"6/6 - Indaforro - Totem","val":287.0,"date":"19/02/2026"},{"desc":"3/12 - Pizzaria Nações - totem","val":247.0,"date":"17/02/2026"},{"desc":"2/3 - TAI MODAS - totem","val":447.0,"date":"16/02/2026"},{"desc":"Honorário - Priorizze - 1/6 - A.P.E (Personal)","val":2645.11,"date":"14/02/2026"},{"desc":"3/12 - Pizzaria Nações - totem","val":245.13,"date":"12/02/2026"},{"desc":"4/12 - Alegria da bicharada - totem","val":247.0,"date":"11/02/2026"},{"desc":"Valor para campanhas - Di fábrica","val":193.1,"date":"09/02/2026"},{"desc":"Honorário ABRii - AC Clean (JANEIRO)","val":1787.0,"date":"02/02/2026"}],"saidas":[{"desc":"Empréstimo Michelle","val":75.0,"date":"28/02/2026"},{"desc":"Empréstimo Brayan","val":150.0,"date":"27/02/2026"},{"desc":"Cervejas - Encontro Sócios","val":51.75,"date":"27/02/2026"},{"desc":"Charuto - Encontro Sócios","val":10.0,"date":"27/02/2026"},{"desc":"Café - Reuniao Rádio","val":15.0,"date":"27/02/2026"},{"desc":"Envelopes - 31 Março - Shopee","val":125.97,"date":"27/02/2026"},{"desc":"Empréstimo - Brayan (pipoca)","val":30.0,"date":"26/02/2026"},{"desc":"Pizza (reuniao de sócios) - Maria Gabriela","val":30.0,"date":"26/02/2026"},{"desc":"Aluguel - Totens","val":1630.43,"date":"25/02/2026"},{"desc":"Valor para Trafego pago - Di fábrica","val":200.0,"date":"25/02/2026"},{"desc":"Valor para Trafego pago - ABRii Academy","val":300.0,"date":"24/02/2026"},{"desc":"Gasolina - Filmmaker ANA","val":30.0,"date":"23/02/2026"},{"desc":"Condominio - Sala Comercial","val":305.0,"date":"23/02/2026"},{"desc":"Aluguel Sala Comercial","val":2500.0,"date":"23/02/2026"},{"desc":"Horas pagas de Janeiro - Ana Filmmaker","val":100.0,"date":"23/02/2026"},{"desc":"Michelle emprestou o carro pra filmmaker - Uber","val":13.71,"date":"19/02/2026"},{"desc":"Reunião sócios - vinho - Mercado Consimao","val":26.5,"date":"18/02/2026"},{"desc":"Bebedouro - Havan","val":49.48,"date":"18/02/2026"},{"desc":"Fatura Nubank","val":644.83,"date":"18/02/2026"},{"desc":"Café, esponja, papel higienico -Mercado","val":72.25,"date":"17/02/2026"},{"desc":"1ª Parte - Salario Michelle","val":1600.0,"date":"16/02/2026"},{"desc":"Prolabore - sócio Railan","val":3000.0,"date":"16/02/2026"},{"desc":"Valor para Tráfego Pago - Projeto Natal (ABRii)","val":120.0,"date":"12/02/2026"},{"desc":"Valor para Tráfego Pago - ABRii","val":350.0,"date":"12/02/2026"},{"desc":"Valor para Tráfego Pago - Di Fábrica","val":200.0,"date":"12/02/2026"},{"desc":"Encanador - ar condicionado","val":50.0,"date":"11/02/2026"},{"desc":"Climb player - sistema totens","val":109.95,"date":"10/02/2026"},{"desc":"Prolabore - sócio Brayan","val":3000.0,"date":"10/02/2026"},{"desc":"Prolabore - sócio Adrian","val":3000.0,"date":"10/02/2026"},{"desc":"Café - mercado","val":36.99,"date":"10/02/2026"},{"desc":"Cuca + suco - MERCADO (carla)","val":26.95,"date":"09/02/2026"},{"desc":"Bônus Michelle","val":600.0,"date":"07/02/2026"},{"desc":"Valor para campanhas de TP - Pizzaria Nações","val":1000.0,"date":"03/02/2026"},{"desc":"Comes e bebes - Padaria Pabulo","val":100.0,"date":"03/02/2026"},{"desc":"Dani Personalizados - 2ª Parte (Brindes A.P.E)","val":85.0,"date":"03/02/2026"},{"desc":"Coca cola, suco - Mercado Cooper","val":38.37,"date":"03/02/2026"},{"desc":"Folha preta - Papelaria","val":1.5,"date":"03/02/2026"},{"desc":"Canaletas, fios, tomadas, etc - Tomio Mat. Construcao","val":160.0,"date":"03/02/2026"},{"desc":"Jarra, copos, etc - Dab 10","val":63.38,"date":"03/02/2026"},{"desc":"1ª Parte - Ar condicionado - BETO","val":2000.0,"date":"03/02/2026"}]},{"label":"Mar/26","key":"2026-03","e":8692.32,"s":3839.97,"l":4852.35,"entradas":[{"desc":"Honorário - Priorizze - 2/6 - A.P.E (Personal)","val":2645.11,"date":"13/03/2026"},{"desc":"Honorário - Vert Eletro Metais - 1/6","val":2498.11,"date":"12/03/2026"},{"desc":"Honorário ABRii - João BJJ","val":200.0,"date":"10/03/2026"},{"desc":"4/12 - Pizzaria Nações - totem","val":247.0,"date":"10/03/2026"},{"desc":"5/12 - Alegria da bicharada - totem","val":240.1,"date":"10/03/2026"},{"desc":"Honorário ABRii - SC REPRESENTAÇÕES - 1/3","val":1000.0,"date":"05/03/2026"},{"desc":"Devolução Empréstimo Michelle","val":75.0,"date":"04/03/2026"},{"desc":"Honorário ABRii - AC Clean (FEVEREIRO)","val":1787.0,"date":"02/03/2026"}],"saidas":[{"desc":"1 placa de premiação - Shoppe","val":38.82,"date":"12/03/2026"},{"desc":"Torre de chop - reuniao de socios - Kafundo pasteis","val":96.0,"date":"11/03/2026"},{"desc":"Bolo pra reunião - Alegria da bicharada - Mercado","val":20.48,"date":"11/03/2026"},{"desc":"10 focos de luz - Tashibra","val":67.93,"date":"11/03/2026"},{"desc":"2 galões de Água - Mercado","val":48.87,"date":"11/03/2026"},{"desc":"Climb Player","val":109.95,"date":"10/03/2026"},{"desc":"Talões de \"prejuizo comercial\" - Indajet","val":112.5,"date":"10/03/2026"},{"desc":"Dinamica Brayan - Balões - Couto","val":20.0,"date":"10/03/2026"},{"desc":"Outdoors - Linear Paineis","val":500.0,"date":"10/03/2026"},{"desc":"1ª Parte - placa acrilica - Nature Arte","val":27.45,"date":"10/03/2026"},{"desc":"Bônus de salário Michelle","val":700.0,"date":"10/03/2026"},{"desc":"Água, cuca e iogurte Michelle - Mercado","val":42.12,"date":"09/03/2026"},{"desc":"Rosca e doce - Padaria (obra)","val":30.78,"date":"08/03/2026"},{"desc":"Pão e linguica - Padaria (obra)","val":32.59,"date":"07/03/2026"},{"desc":"Fitas, massa corrida - Beto Tintas (obra)","val":44.0,"date":"07/03/2026"},{"desc":"Presente dia das Mulheres - ABRii","val":300.0,"date":"06/03/2026"},{"desc":"Galão de água e água - Mercado","val":36.88,"date":"05/03/2026"},{"desc":"Duas cucas - Método A.P.E Presencial","val":45.88,"date":"03/03/2026"},{"desc":"Café, Pasta de dente - Mercado","val":50.97,"date":"03/03/2026"},{"desc":"Papel Toalha - Higielimp","val":21.8,"date":"03/03/2026"},{"desc":"Valor para Tráfego Pago - ABRii Academy","val":300.0,"date":"03/03/2026"},{"desc":"Anderson - Pintura Teto da MAP","val":200.0,"date":"03/03/2026"},{"desc":"Tintas Sala - Beto Tintas (obra)","val":960.0,"date":"02/03/2026"},{"desc":"Associação CDL","val":30.0,"date":"02/03/2026"},{"desc":"Recibo - Papelaria","val":2.95,"date":"02/03/2026"}]}];
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved) {
+      const parsed = JSON.parse(saved);
+      // Merge: keep embedded structure, overlay saved data
+      return parsed;
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(EMBEDDED)); // deep copy
+}
+const RAW = loadData();
+
+// ══ STATE ══
+let activeLancMonth = RAW.length - 1;
+let activeTxMonth   = -1;
+let editMode        = true;
+let metaGoal = parseInt(localStorage.getItem(META_KEY)||'30000');
+
+// ══ HELPERS ══
+const fmt  = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmt2 = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function fromInputDate(s) {
+  if(!s) return '';
+  const p = s.split('-');
+  return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : s;
+}
+function valWidth(v) {
+  const s = v ? String(parseFloat(v).toLocaleString('pt-BR',{maximumFractionDigits:2})) : '';
+  return Math.min(148, Math.max(72, 72 + Math.max(0, s.length - 3) * 9)) + 'px';
+}
+function pendingTotal() {
+  return RAW.flatMap(m=>m.entradas)
+    .filter(e=>e.status==='pnd'||e.status==='atd')
+    .reduce((a,b)=>a+(parseFloat(b.val)||0),0);
+}
+function pendingCount() {
+  return RAW.flatMap(m=>m.entradas).filter(e=>e.status==='pnd'||e.status==='atd').length;
+}
+
+// ══ MODE TOGGLE ══
+function setMode(m) {
+  editMode = m==='edit';
+  document.getElementById('btn-edit').classList.toggle('on', editMode);
+  document.getElementById('btn-view').classList.toggle('on', !editMode);
+  document.getElementById('mainContent').classList.toggle('view-mode', !editMode);
+  if(document.getElementById('tab-lancamentos').style.display!=='none') renderEntryForm();
+}
+
+// ══ TABS ══
+function switchTab(name) {
+  ['overview','lancamentos','monthly','cashflow','transactions','insights'].forEach(t =>
+    document.getElementById('tab-'+t).style.display = t===name?'':'none');
+  document.querySelectorAll('.tab,.ni').forEach(el => el.classList.toggle('on', el.dataset.tab===name));
+  const L = {overview:'Visão Geral',lancamentos:'Lançamentos',monthly:'Mês a Mês',
+    cashflow:'Fluxo de Caixa',transactions:'Transações',insights:'Insights'};
+  document.getElementById('tb-period').textContent = L[name];
+  if(name==='monthly')      buildMonthTable();
+  if(name==='cashflow')     buildCashflow();
+  if(name==='transactions') buildTxPills();
+  if(name==='insights')     buildInsights();
+  if(name==='lancamentos')  buildLancamentos();
+}
+document.querySelectorAll('.tab,.ni').forEach(el =>
+  el.addEventListener('click',()=>el.dataset.tab&&switchTab(el.dataset.tab)));
+
+// ══ KPIs (animated counter) ══
+function animCount(elId, target, prefix='R$ ') {
+  const el = document.getElementById(elId);
+  const start = parseFloat(el.dataset.cur||0);
+  const dur = 500, step = 16;
+  let t=0;
+  clearInterval(el._timer);
+  el._timer = setInterval(()=>{
+    t += step;
+    const p = Math.min(t/dur,1);
+    const ease = 1-(1-p)**3;
+    const cur = start + (target-start)*ease;
+    el.textContent = prefix + Math.round(cur).toLocaleString('pt-BR');
+    if(p>=1){clearInterval(el._timer);el.dataset.cur=target;}
+  }, step);
+}
+
+function updateKPIs() {
+  const totE = RAW.reduce((a,m)=>a+m.e,0);
+  const totS = RAW.reduce((a,m)=>a+m.s,0);
+  const res  = totE-totS;
+  const pend = pendingTotal();
+  const mg   = totE>0?(res/totE*100).toFixed(1):0;
+  const best = RAW.reduce((a,b)=>b.l>a.l?b:a);
+  const lastM = RAW[RAW.length-1];
+
+  animCount('kv-e', totE);
+  animCount('kv-s', totS);
+  animCount('kv-r', res);
+  animCount('kv-p', pend);
+
+  document.getElementById('kb-e').textContent = RAW.length+' meses';
+  document.getElementById('kb-s').className = 'bdg '+(totS/totE<0.8?'nt':'dn');
+  document.getElementById('kb-s').textContent = (totS/totE*100).toFixed(1)+'% da receita';
+  document.getElementById('kb-r').className = 'bdg '+(res>=0?'up':'dn');
+  document.getElementById('kb-r').textContent = (res>=0?'▲ ':' ▼')+Math.abs(mg)+'% margem';
+  document.getElementById('kb-p').textContent = pendingCount()+' lançamentos';
+  document.getElementById('kb-p').className = 'bdg '+(pend>0?'nt':'up');
+
+  // Sidebar
+  document.getElementById('sb-e').textContent = fmt(totE);
+  document.getElementById('sb-s').textContent = fmt(totS);
+  document.getElementById('sb-r').textContent = fmt(res);
+  document.getElementById('sb-r').style.color = res>=0?'var(--gold)':'var(--red)';
+
+  // Meta gauge (last month)
+  const cur = lastM.e;
+  const pct = Math.min(100, (cur/metaGoal*100)).toFixed(1);
+  document.getElementById('meta-fill').style.width = pct+'%';
+  document.getElementById('meta-fill').style.background =
+    pct>=100 ? 'linear-gradient(90deg,var(--green),#5ddd90)' :
+    pct>=70  ? 'linear-gradient(90deg,var(--td),var(--teal))' :
+               'linear-gradient(90deg,#5a3a10,var(--gold))';
+  document.getElementById('meta-cur').textContent = fmt(cur);
+  document.getElementById('meta-pct').textContent = pct+'%';
+  document.getElementById('meta-goal').textContent = '/ '+fmt(metaGoal);
+}
+
+// ══ TIMELINE ══
+function buildTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML='';
+  const max = Math.max(...RAW.map(m=>Math.abs(m.l)));
+  RAW.forEach((m,i) => {
+    const pos = m.l >= 0;
+    const intensity = max>0 ? Math.abs(m.l)/max : 0;
+    const color = pos
+      ? `rgba(47,${Math.round(153+intensity*50)},${Math.round(165+intensity*40)},${0.5+intensity*0.5})`
+      : `rgba(${Math.round(180+intensity*44)},${Math.round(85-intensity*30)},${Math.round(85-intensity*30)},${0.5+intensity*0.5})`;
+    const div = document.createElement('div');
+    div.className = 'tl-item'+(i===activeLancMonth?' on':'');
+    div.innerHTML = `
+      <div class="tl-dot" style="background:${color};border-color:${color}"></div>
+      <div class="tl-lbl">${m.label}</div>
+      <div class="tl-val" style="color:${pos?'var(--teal)':'var(--red)'}">${pos?'+':''}${fmt(m.l)}</div>`;
+    div.onclick = () => {
+      activeLancMonth=i; activeTxMonth=i;
+      document.querySelectorAll('.tl-item').forEach((el,j)=>el.classList.toggle('on',j===i));
+    };
+    tl.appendChild(div);
+  });
+}
+
+// ══ HEATMAP ══
+function buildHeatmap() {
+  const wrap = document.getElementById('heatmap');
+  const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Build year→month map
+  const dataMap = {};
+  RAW.forEach(m => {
+    const [yr,mo] = m.key.split('-').map(Number);
+    if(!dataMap[yr]) dataMap[yr]=Array(12).fill(null);
+    dataMap[yr][mo-1] = m.l;
+  });
+  const years = Object.keys(dataMap).sort();
+  const allVals = Object.values(dataMap).flat().filter(v=>v!==null);
+  const maxAbs = Math.max(...allVals.map(Math.abs),1);
+
+  let html = '<div class="hm-labels">';
+  MONTHS.forEach(m => html+=`<div class="hm-label">${m}</div>`);
+  html += '</div>';
+
+  years.forEach(yr => {
+    html += `<div class="hm-row"><div class="hm-yr">${yr}</div>`;
+    for(let mo=0;mo<12;mo++) {
+      const v = dataMap[yr][mo];
+      if(v===null) { html+='<div class="hm-cell empty"></div>'; continue; }
+      const norm = Math.abs(v)/maxAbs;
+      const alpha = 0.2+norm*0.75;
+      let bg, txt;
+      if(v>=0) { bg=`rgba(47,153,165,${alpha})`; txt=norm>0.4?'var(--tx)':'var(--teal)'; }
+      else      { bg=`rgba(224,85,85,${alpha})`;  txt=norm>0.4?'var(--tx)':'var(--red)'; }
+      const tipVal = (v>=0?'+':'')+Math.round(v/1000*10)/10+'k';
+      html+=`<div class="hm-cell" style="background:${bg};color:${txt}" title="${MONTHS[mo]}/${yr}: ${fmt(v)}">${tipVal}</div>`;
+    }
+    html+='</div>';
+  });
+
+  html += `<div class="hm-legend"><span class="hm-leg-lbl">Prejuízo</span><div class="hm-leg-cells">`;
+  [0.2,0.45,0.7,0.95].forEach(a=>html+=`<div class="hm-leg-c" style="background:rgba(224,85,85,${a})"></div>`);
+  html += '</div><span class="hm-leg-lbl">Neutro</span><div class="hm-leg-cells">';
+  [0.2,0.45,0.7,0.95].forEach(a=>html+=`<div class="hm-leg-c" style="background:rgba(47,153,165,${a})"></div>`);
+  html += '</div><span class="hm-leg-lbl">Lucro</span></div>';
+
+  wrap.innerHTML = html;
+}
+
+// ══ CHARTS ══
+let CH={};
+function initCharts() {
+  Chart.defaults.color='rgba(247,249,255,0.32)'; Chart.defaults.font.family='Raleway';
+  const c1=document.getElementById('barC').getContext('2d');
+  CH.bar=new Chart(c1,{type:'bar',data:{labels:RAW.map(m=>m.label),datasets:[
+    {label:'Receitas',data:RAW.map(m=>m.e),backgroundColor:'rgba(47,153,165,0.65)',borderRadius:5,borderSkipped:false},
+    {label:'Despesas',data:RAW.map(m=>m.s),backgroundColor:'rgba(224,85,85,0.48)',borderRadius:5,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'rgba(247,249,255,0.42)',boxWidth:10}}},
+    scales:{x:{grid:{color:'rgba(47,153,165,0.04)'},ticks:{color:'rgba(247,249,255,0.32)',maxRotation:45}},
+    y:{grid:{color:'rgba(47,153,165,0.04)'},ticks:{color:'rgba(247,249,255,0.32)',callback:v=>fmt(v)}}}}});
+
+  const c2=document.getElementById('lineC').getContext('2d');
+  const g2=c2.createLinearGradient(0,0,0,150);
+  g2.addColorStop(0,'rgba(198,161,91,0.22)'); g2.addColorStop(1,'transparent');
+  let acc=0; const cum=RAW.map(m=>{acc+=m.l;return acc;});
+  CH.line=new Chart(c2,{type:'line',data:{labels:RAW.map(m=>m.label),datasets:[{
+    label:'Saldo',data:cum,borderColor:'#c6a15b',backgroundColor:g2,fill:true,tension:0.4,
+    pointBackgroundColor:cum.map(v=>v>=0?'#c6a15b':'#e05555'),pointBorderColor:'#000',pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:'rgba(47,153,165,0.04)'},ticks:{color:'rgba(247,249,255,0.30)',maxRotation:45}},
+    y:{grid:{color:'rgba(47,153,165,0.04)'},ticks:{color:'rgba(247,249,255,0.30)',callback:v=>fmt(v)}}}}});
+
+  buildCategories(); buildTimeline(); buildHeatmap();
+}
+
+function updateCharts() {
+  if(!CH.bar) return;
+  CH.bar.data.labels=RAW.map(m=>m.label);
+  CH.bar.data.datasets[0].data=RAW.map(m=>m.e);
+  CH.bar.data.datasets[1].data=RAW.map(m=>m.s);
+  CH.bar.update();
+  let acc=0; const cum=RAW.map(m=>{acc+=m.l;return acc;});
+  CH.line.data.labels=RAW.map(m=>m.label);
+  CH.line.data.datasets[0].data=cum;
+  CH.line.data.datasets[0].pointBackgroundColor=cum.map(v=>v>=0?'#c6a15b':'#e05555');
+  CH.line.update();
+  buildCategories(); buildTimeline(); buildHeatmap();
+}
+
+// ══ CATEGORIES ══
+const CATS_DEF=[
+  ['Salários/Equipe',  ['salario','salário','michelle','thais','prolabore','bônus','bonus','demissão']],
+  ['Aluguel',          ['aluguel']],
+  ['Tráfego Pago',     ['tráfego','trafego','campanha']],
+  ['CRM/Software',     ['chatcenter','crm','odoo','erp','chat gpt','notion','icloud','climb','microsoft']],
+  ['Dízimo/Oferta',    ['dizimo','dízimo','dizímo','oferta']],
+  ['Empréstimos',      ['empréstimo','emprestimo']],
+  ['Alimentação/Esc.', ['padaria','mercado','café','lanche','pizza','churrasco','cuca','rosca','bolo','cooper']],
+  ['Networking/Viagem',['poker','networking','ingresso','treinamento','airbnb','passagem','uber','estacionamento']],
+  ['Brindes/Presentes',['brinde','presente','chocolate']],
+];
+function categorize(saidas) {
+  const t={};
+  saidas.forEach(s=>{
+    const dl=s.desc.toLowerCase(); let matched=false;
+    for(const [cat,kws] of CATS_DEF){if(kws.some(k=>dl.includes(k))){t[cat]=(t[cat]||0)+s.val;matched=true;break;}}
+    if(!matched) t['Outros']=(t['Outros']||0)+s.val;
+  });
+  return t;
+}
+function buildCategories() {
+  const all=RAW.flatMap(m=>m.saidas);
+  const cats=categorize(all); const total=Object.values(cats).reduce((a,b)=>a+b,0);
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const colors=['#2f99a5','#c6a15b','#e6d8b8','#8c6b3f','#4a8a90','#6b7a8c','#9a7a5a','#7a9a8a','#5a7a6a','#8a6a5a'];
+  const el=document.getElementById('catList'); el.innerHTML='';
+  sorted.slice(0,9).forEach(([name,val],i)=>{
+    const pct=(val/total*100).toFixed(1);
+    el.innerHTML+=`<div><div class="cat-top">
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:7px;height:7px;border-radius:50%;background:${colors[i]};flex-shrink:0"></div><span class="cat-nm">${name}</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><span class="cat-vl">${fmt(val)}</span><span class="cat-pct">${pct}%</span></div>
+    </div><div class="cat-tr"><div class="cat-f" style="width:${pct}%;background:${colors[i]}"></div></div></div>`;
+  });
+}
+
+// ══ MONTH TABLE ══
+function buildMonthTable() {
+  const maxE=Math.max(...RAW.map(m=>m.e));
+  let h=`<tr><th style="text-align:left">Mês</th><th>Receitas</th><th>Despesas</th><th>Resultado</th><th>Margem</th><th>A Receber</th><th>Status</th></tr>`;
+  let totE=0,totS=0;
+  RAW.forEach(m=>{
+    totE+=m.e; totS+=m.s;
+    const res=m.e-m.s, mg=m.e>0?(res/m.e*100).toFixed(1):0;
+    const p=(m.e/maxE*100).toFixed(0);
+    const mPend=m.entradas.filter(e=>e.status==='pnd'||e.status==='atd').reduce((a,b)=>a+(parseFloat(b.val)||0),0);
+    h+=`<tr onclick="drillMonth(${RAW.indexOf(m)})">
+      <td>${m.label}</td>
+      <td class="pos">${fmt2(m.e)}<div class="bm" style="width:${p}%;background:rgba(47,153,165,0.45)"></div></td>
+      <td class="neg">${fmt2(m.s)}</td>
+      <td class="${res>=0?'pos':'neg'}">${res>=0?'+':''}${fmt2(res)}</td>
+      <td class="${mg>=0?'pos':'neg'}">${mg}%</td>
+      <td class="${mPend>0?'':'pos'}">${mPend>0?fmt(mPend):'—'}</td>
+      <td><span class="bdg ${res>=0?'up':'dn'}">${res>=0?'▲ Lucro':'▼ Prejuízo'}</span></td>
+    </tr>`;
+  });
+  const res=totE-totS,mg=totE>0?(res/totE*100).toFixed(1):0;
+  h+=`<tr class="tot"><td>TOTAL</td><td class="pos">${fmt2(totE)}</td><td class="neg">${fmt2(totS)}</td>
+    <td class="${res>=0?'pos':'neg'}">${res>=0?'+':''}${fmt2(res)}</td><td class="${res>=0?'pos':'neg'}">${mg}%</td><td></td><td></td></tr>`;
+  document.getElementById('monthTbl').innerHTML=h;
+}
+function drillMonth(idx){activeTxMonth=idx;switchTab('transactions');buildTxPills();renderTx();}
+
+// ══ LANÇAMENTOS ══
+function buildLancamentos() {
+  const pp=document.getElementById('monthPills'); pp.innerHTML='';
+  RAW.forEach((m,i)=>pp.innerHTML+=`<button class="mp ${i===activeLancMonth?'on':''}" onclick="selectLancMonth(${i})">${m.label}</button>`);
+  pp.innerHTML+=`<button class="mp" style="border-style:dashed" onclick="addNewMonth()">+ Novo Mês</button>`;
+  renderEntryForm();
+}
+function selectLancMonth(i){activeLancMonth=i;buildLancamentos();}
+function addNewMonth(){
+  const last=RAW[RAW.length-1];
+  const [yr,mon]=last.key.split('-').map(Number);
+  const nm=mon===12?1:mon+1,ny=mon===12?yr+1:yr;
+  const key=`${ny}-${String(nm).padStart(2,'0')}`;
+  const mns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  RAW.push({label:`${mns[nm]}/${String(ny).slice(2)}`,key,e:0,s:0,l:0,entradas:[],saidas:[]});
+  activeLancMonth=RAW.length-1;
+  updateKPIs();updateCharts();buildLancamentos();autoSave();
+}
+
+function renderEntryForm(){
+  const m=RAW[activeLancMonth];
+  const ef=document.getElementById('entryForms'); ef.innerHTML='';
+  const hint=`<div class="col-hdr">
+    <span class="ch-l ch-desc">Descrição</span>
+    <span class="ch-l ch-date">Data</span>
+    <span class="ch-l ch-val">Valor</span>
+    <span class="ch-l ch-st">Status</span>
+  </div>`;
+  let enHTML=`<div><div class="ec-title en">▲ Entradas (Receitas)</div>
+    <button class="add-btn" onclick="addRow('en')">＋ Adicionar entrada</button>
+    ${hint}<div id="en-rows">`;
+  m.entradas.forEach((e,i)=>{enHTML+=eRow(e.desc,e.date||'',e.val,'en',i,e.status||'rcv');});
+  enHTML+=`</div></div>`;
+  let saHTML=`<div><div class="ec-title sa">▼ Saídas (Despesas)</div>
+    <button class="add-btn" onclick="addRow('sa')">＋ Adicionar saída</button>
+    ${hint}<div id="sa-rows">`;
+  m.saidas.forEach((s,i)=>{saHTML+=eRow(s.desc,s.date||'',s.val,'sa',i,s.status||'rcv');});
+  saHTML+=`</div></div>`;
+  ef.innerHTML=enHTML+saHTML;
+  updateEntrySummary();
+}
+
+function eRow(desc,date,val,type,idx,status){
+  const esc=desc.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const w=valWidth(val);
+  const stOpts=['rcv','pnd','atd'];
+  const stLbl={'rcv':'Recebido','pnd':'Pendente','atd':'Atrasado'};
+  let opts=''; stOpts.forEach(s=>opts+=`<option value="${s}"${s===status?' selected':''}>${stLbl[s]}</option>`);
+  return `<div class="erow" id="${type}-row-${idx}">
+    <input class="lbl-i" value="${esc}" onchange="updateDesc('${type}',${idx},this.value)">
+    <div class="date-wrap">
+      <input type="text" class="date-i" value="${date||''}" placeholder="dd/mm"
+        onblur="smartDate('${type}',${idx},this)"
+        onkeydown="if(event.key==='Enter'||event.key==='Tab'){smartDate('${type}',${idx},this)}">
+    </div>
+    <div class="vw"><span>R$</span>
+      <input class="vi" type="number" step="0.01" value="${val||''}" style="width:${w}"
+        oninput="updateVal('${type}',${idx},this)">
+    </div>
+    <select class="st-sel ${status}" onchange="updateStatus('${type}',${idx},this)">${opts}</select>
+    <div class="del-btn" onclick="delRow('${type}',${idx})">×</div>
+  </div>`;
+}
+
+function updateDesc(type,idx,v){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].desc=v;}
+function updateStatus(type,idx,el){
+  const arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];
+  arr[idx].status=el.value;
+  el.className='st-sel '+el.value;
+  updateKPIs(); autoSave();
+}
+function smartDate(type,idx,el){
+  let v=el.value.trim();
+  if(!v){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].date='';return;}
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].date=v;return;}
+  if(/^\d{2}\/\d{2}\/\d{2}$/.test(v)){v=v.slice(0,6)+'20'+v.slice(6);el.value=v;}
+  else if(/^\d{1,2}\/\d{1,2}$/.test(v)){
+    const [dd,mm]=v.split('/').map(s=>s.padStart(2,'0'));
+    const yr=RAW[activeLancMonth].key.split('-')[0]; v=`${dd}/${mm}/${yr}`; el.value=v;
+  } else if(/^\d{1,2}$/.test(v)){
+    const dd=v.padStart(2,'0'); const [yr,mm]=RAW[activeLancMonth].key.split('-'); v=`${dd}/${mm}/${yr}`; el.value=v;
+  }
+  RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].date=v;
+}
+function updateVal(type,idx,el){
+  const v=parseFloat(el.value)||0;
+  RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].val=v;
+  el.style.width=valWidth(v);
+  recalcMonth(activeLancMonth);updateEntrySummary();updateKPIs();updateCharts();
+}
+function addRow(type){
+  const arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];
+  arr.unshift({desc:'',date:'',val:0,status:'pnd'});
+  renderEntryForm();
+  setTimeout(()=>{const f=document.querySelector(`#${type}-rows .lbl-i`);if(f)f.focus();},50);
+}
+function delRow(type,idx){
+  RAW[activeLancMonth][type==='en'?'entradas':'saidas'].splice(idx,1);
+  recalcMonth(activeLancMonth);renderEntryForm();updateKPIs();updateCharts();autoSave();
+}
+// ══ AUTO-SAVE ══
+function autoSave() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(RAW));
+    localStorage.setItem(META_KEY, String(metaGoal));
+    // Flash save indicator
+    const ind = document.getElementById('save-ind');
+    if(ind) { ind.classList.add('saved'); setTimeout(()=>ind.classList.remove('saved'),1200); }
+  } catch(e) { console.warn('AutoSave failed:', e); }
+}
+
+function recalcMonth(i){
+  const m=RAW[i];
+  m.e=m.entradas.reduce((a,b)=>a+(parseFloat(b.val)||0),0);
+  m.s=m.saidas.reduce((a,b)=>a+(parseFloat(b.val)||0),0);
+  m.l=m.e-m.s;
+  autoSave();
+}
+function updateEntrySummary(){
+  const m=RAW[activeLancMonth];
+  const pend=m.entradas.filter(e=>e.status==='pnd'||e.status==='atd').reduce((a,b)=>a+(parseFloat(b.val)||0),0);
+  document.getElementById('es-e').textContent=fmt2(m.e);
+  document.getElementById('es-s').textContent=fmt2(m.s);
+  document.getElementById('es-p').textContent=pend>0?fmt2(pend):'R$ 0,00';
+  const r=document.getElementById('es-r');
+  r.textContent=(m.l>=0?'+':'')+fmt2(m.l);
+  r.style.color=m.l>=0?'var(--teal)':'var(--red)';
+}
+
+// ══ CASHFLOW ══
+function buildCashflow(){
+  const totE=RAW.reduce((a,m)=>a+m.e,0),totS=RAW.reduce((a,m)=>a+m.s,0);
+  const cats=categorize(RAW.flatMap(m=>m.saidas));
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  let h=`<table><tr><th style="text-align:left">Descrição</th><th>Valor</th><th>% do Total</th></tr>`;
+  h+=`<tr class="cf-s"><td colspan="3">ENTRADAS POR PERÍODO</td></tr>`;
+  RAW.forEach(m=>{h+=`<tr><td>${m.label}</td><td class="pos">${fmt2(m.e)}</td><td class="pos">${totE>0?(m.e/totE*100).toFixed(1):0}%</td></tr>`;});
+  h+=`<tr class="cf-t"><td>TOTAL ENTRADAS</td><td class="pos">${fmt2(totE)}</td><td class="pos">100%</td></tr>`;
+  h+=`<tr class="cf-s"><td colspan="3">SAÍDAS POR CATEGORIA</td></tr>`;
+  sorted.forEach(([cat,val])=>{h+=`<tr><td>${cat}</td><td class="neg">${fmt2(val)}</td><td class="neg">${totS>0?(val/totS*100).toFixed(1):0}%</td></tr>`;});
+  h+=`<tr class="cf-t"><td>TOTAL SAÍDAS</td><td class="neg">${fmt2(totS)}</td><td class="neg">100%</td></tr>`;
+  const res=totE-totS;
+  h+=`<tr class="cf-r"><td>RESULTADO LÍQUIDO</td><td colspan="2" style="text-align:right;color:${res>=0?'var(--teal)':'var(--red)'}">${res>=0?'+':''}${fmt2(res)}</td></tr></table>`;
+  document.getElementById('cfTbl').innerHTML=h;
+}
+
+// ══ TRANSACTIONS ══
+function buildTxPills(){
+  const pp=document.getElementById('txPills');pp.innerHTML='';
+  pp.innerHTML+=`<button class="mp ${activeTxMonth===-1?'on':''}" onclick="setTxMonth(-1)">Todos</button>`;
+  RAW.forEach((m,i)=>pp.innerHTML+=`<button class="mp ${i===activeTxMonth?'on':''}" onclick="setTxMonth(${i})">${m.label}</button>`);
+  renderTx();
+}
+function setTxMonth(i){
+  activeTxMonth=i;
+  document.querySelectorAll('#txPills .mp').forEach((b,idx)=>b.classList.toggle('on',idx-1===i||(i===-1&&idx===0)));
+  renderTx();
+}
+function renderTx(){
+  const months=activeTxMonth===-1?RAW:[RAW[activeTxMonth]];
+  const allE=months.flatMap(m=>m.entradas).sort((a,b)=>b.val-a.val).slice(0,40);
+  const allS=months.flatMap(m=>m.saidas).sort((a,b)=>b.val-a.val).slice(0,40);
+  const totE=months.reduce((a,m)=>a+m.e,0),totS=months.reduce((a,m)=>a+m.s,0);
+  document.getElementById('tx-e-lbl').textContent=fmt(totE)+' total';
+  document.getElementById('tx-s-lbl').textContent=fmt(totS)+' total';
+  const eI=['💼','📋','🤝','💡','📈','⭐','🏆','🔑','💎','🌟','📦','🎯','🚀','✅','💰','🎪','🏅','📊','🎉','💫','🌱','🔥','⚡','🎖','🏢','💵','📱','🎀','🌿','🎗','💼','📋','🤝','💡','📈','⭐','🏆','🔑','💎','🌟'];
+  const sI=['🏢','💸','📣','💻','👥','📊','🙏','🍽️','✈️','🎁','🔧','🛠','📦','🚗','💊','🔌','📝','🎬','🏋','🎵','🎮','🎯','🔑','💡','📱','🛒','🔄','📌','🗂','⚙️','🏢','💸','📣','💻','👥','📊','🙏','🍽️','✈️','🎁'];
+  const stColor={'rcv':'transparent','pnd':'rgba(255,184,0,0.15)','atd':'rgba(224,85,85,0.12)','':''};
+  const elE=document.getElementById('txE');elE.innerHTML='';
+  allE.forEach((e,i)=>{
+    const bg=stColor[e.status||'rcv']||'';
+    const stBadge=e.status&&e.status!=='rcv'?`<span class="st ${e.status}">${e.status==='pnd'?'Pendente':'Atrasado'}</span>`:'';
+    elE.innerHTML+=`<div class="tx" style="background:${bg}">
+      <div class="tx-ic" style="background:rgba(47,153,165,0.12)">${eI[i%eI.length]}</div>
+      <div class="tx-in"><div class="tx-nm">${e.desc}</div><div class="tx-dt">${e.date||'—'}</div></div>
+      ${stBadge}<div class="tx-vl pos">${fmt2(e.val)}</div></div>`;
+  });
+  const elS=document.getElementById('txS');elS.innerHTML='';
+  allS.forEach((s,i)=>{
+    elS.innerHTML+=`<div class="tx">
+      <div class="tx-ic" style="background:rgba(224,85,85,0.09)">${sI[i%sI.length]}</div>
+      <div class="tx-in"><div class="tx-nm">${s.desc}</div><div class="tx-dt">${s.date||'—'}</div></div>
+      <div class="tx-vl neg">${fmt2(s.val)}</div></div>`;
+  });
+}
+
+// ══ INSIGHTS ══
+function buildInsights(){
+  const totE=RAW.reduce((a,m)=>a+m.e,0),totS=RAW.reduce((a,m)=>a+m.s,0);
+  const res=totE-totS,mg=(res/totE*100).toFixed(1);
+  const pos=RAW.filter(m=>m.l>=0).length;
+  const best=RAW.reduce((a,b)=>b.l>a.l?b:a);
+  const worst=RAW.reduce((a,b)=>b.l<a.l?b:a);
+  const allCats=categorize(RAW.flatMap(m=>m.saidas));
+  const topCat=Object.entries(allCats).sort((a,b)=>b[1]-a[1])[0];
+  const lastM=RAW[RAW.length-1];
+  const lastThree=RAW.slice(-3);
+  const avgLast3=lastThree.reduce((a,m)=>a+m.e,0)/3;
+  const nextProj=avgLast3;
+  const pend=pendingTotal();
+
+  const cards=[
+    {i:'📈',t:'CRESCIMENTO',b:`Receita saltou de <strong>${fmt(RAW[0].e)}</strong> (${RAW[0].label}) para <strong>${fmt(lastM.e)}</strong> (${lastM.label}). Crescimento de <strong>${((lastM.e/Math.max(RAW[0].e,1)-1)*100).toFixed(0)}%</strong>.`},
+    {i:'⚖️',t:'RESULTADO GERAL',b:`De ${RAW.length} meses, <strong>${pos} com lucro</strong> e ${RAW.length-pos} com prejuízo. Acumulado: <strong>${fmt(res)}</strong> — margem ${mg}%.`},
+    {i:'🏆',t:'MELHOR MÊS',b:`<strong>${best.label}</strong>: receita <strong>${fmt(best.e)}</strong> e lucro de <strong>${fmt(best.l)}</strong>.`},
+    {i:'⚠️',t:'MAIOR DESAFIO',b:`<strong>${worst.label}</strong>: prejuízo de <strong>${fmt(Math.abs(worst.l))}</strong>. Receita ${fmt(worst.e)} vs custos ${fmt(worst.s)}.`},
+    {i:'🏢',t:'MAIOR CUSTO',b:`<strong>${topCat[0]}</strong> lidera com <strong>${fmt(topCat[1])}</strong> (${(topCat[1]/totS*100).toFixed(1)}% das saídas). Ponto de atenção prioritário.`},
+    {i:'🔮',t:'PROJEÇÃO PRÓX. MÊS',b:`Média dos últimos 3 meses: <strong>${fmt(avgLast3)}</strong>. Projeção para o próximo mês: <strong>≈ ${fmt(nextProj)}</strong>.`},
+    {i:'💰',t:'A RECEBER',b:`Você tem <strong>${fmt(pend)}</strong> em lançamentos com status Pendente ou Atrasado. Acompanhe esses recebimentos.`},
+    {i:'🎯',t:'META DE MARGEM 30%',b:`Margem atual: <strong>${mg}%</strong>. Para 30% precisaria de receita mensal de <strong>${fmt((totS/RAW.length)/0.7)}</strong> mantendo custos.`},
+    {i:'📊',t:'SAZONALIDADE',b:`Heat map mostra <strong>Mai/25, Dez/25, Jan/26</strong> como os meses mais fortes. Planeje ações comerciais nesses períodos.`},
+  ];
+  document.getElementById('insCards').innerHTML=cards.map(c=>`
+    <div class="ic"><div class="ic-ico">${c.i}</div><div class="ic-t">${c.t}</div><div class="ic-b">${c.b}</div></div>`).join('');
+}
+
+// ══ META ══
+function openMeta(){document.getElementById('meta-input').value=metaGoal;document.getElementById('metaOverlay').classList.add('open');}
+function closeMeta(){document.getElementById('metaOverlay').classList.remove('open');}
+function saveMeta(){metaGoal=Number(document.getElementById('meta-input').value)||30000;closeMeta();updateKPIs();autoSave();}
+document.getElementById('metaOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMeta();});
+
+// ══ EXPORT HTML (snapshot for OneDrive backup) ══
+function exportHTML() {
+  const snapshot = JSON.stringify(RAW);
+  // Replace the EMBEDDED data in the file with current RAW
+  const currentHTML = document.documentElement.outerHTML;
+  // Build a self-contained HTML with current data baked in
+  const exportContent = currentHTML
+    .replace(/const EMBEDDED = \[.*?\];/s, 'const EMBEDDED = '+snapshot+';')
+    .replace(/<script>\n\/\/ ══ STORAGE/, '<script>\n// ══ STORAGE');
+  const blob = new Blob([exportContent], {type:'text/html;charset=utf-8'});
+  const a = Object.assign(document.createElement('a'),{
+    href: URL.createObjectURL(blob),
+    download: 'ABRii-DRE-Dashboard-' + new Date().toISOString().slice(0,10) + '.html'
+  });
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);document.body.removeChild(a);}, 100);
+}
+
+// ══ CLEAR DATA (reset to embedded) ══
+function clearStorageData() {
+  if(confirm('Resetar todos os dados para os dados originais da planilha? Esta ação não pode ser desfeita.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+// ══ INIT ══
+updateKPIs();
+initCharts();
+</script>
+</body>
+</html>
