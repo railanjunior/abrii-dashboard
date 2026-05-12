@@ -445,15 +445,15 @@ function loadData(){
   return JSON.parse(JSON.stringify(EMBEDDED_RAW));
 }
 var RAW=loadData();
-// ══ MIGRACAO V1: limpa duplicatas auto-geradas de meses anteriores a Mai/26 ══
-// Roda 1x por dispositivo. Marcador em localStorage evita reaplicacao.
-(function migrarV1(){
+// ══ MIGRACAO IDEMPOTENTE: remove auto-gerados (contratoId) de meses anteriores ao corte ══
+// Roda TODA vez que carrega — assim outras abas com estado velho nao conseguem ressuscitar duplicatas.
+// Operacao idempotente: se nao tem duplicata, nao faz nada (no-op).
+var CORTE_CONTRATOS='2026-05';
+(function limpezaContratos(){
   try{
-    var FLAG='abrii_mig_v1_cleanup_done';
-    if(localStorage.getItem(FLAG)==='1')return;
     var alterado=false,remE=0,remS=0;
     RAW.forEach(function(m){
-      if(m.key>='2026-05')return;
+      if(m.key>=CORTE_CONTRATOS)return;
       var oE=m.entradas.length,oS=m.saidas.length;
       m.entradas=m.entradas.filter(function(e){return !e.contratoId;});
       m.saidas=m.saidas.filter(function(x){return !x.contratoId;});
@@ -468,10 +468,9 @@ var RAW=loadData();
     if(alterado){
       try{localStorage.setItem('abrii_dre_data',JSON.stringify(RAW));}catch(e){}
       try{sessionStorage.setItem('abrii_dre_data',JSON.stringify(RAW));}catch(e){}
-      console.log('Migracao v1 aplicada: removidos '+remE+' entradas e '+remS+' saidas auto-geradas de meses < Mai/26');
+      console.log('[limpezaContratos] removidos '+remE+' entradas e '+remS+' saidas auto-geradas de meses anteriores a '+CORTE_CONTRATOS);
     }
-    localStorage.setItem(FLAG,'1');
-  }catch(e){console.warn('Migracao v1 falhou:',e);}
+  }catch(e){console.warn('limpezaContratos falhou:',e);}
 })();
 var activeLancMonth=RAW.length-1,activeTxMonth=-1,editMode=true;
 var metaGoal=parseInt(localStorage.getItem(META_KEY)||'30000');
@@ -1160,6 +1159,8 @@ function gerarLancamentosDoMes(monthKey){
 function recalcMonthNoSave(i){var m=RAW[i];m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.l=m.e-m.s;}
 function popularMesDeContratos(monthIdx){
   var m=RAW[monthIdx];
+  // Safeguard: nunca popula meses anteriores ao corte
+  if(m.key<CORTE_CONTRATOS)return {entradas:0,saidas:0};
   var g=gerarLancamentosDoMes(m.key);
   var temE={},temS={};
   m.entradas.forEach(function(e){if(e.contratoId)temE[e.contratoId]=true;});
