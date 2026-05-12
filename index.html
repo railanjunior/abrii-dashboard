@@ -445,6 +445,34 @@ function loadData(){
   return JSON.parse(JSON.stringify(EMBEDDED_RAW));
 }
 var RAW=loadData();
+// ══ MIGRACAO V1: limpa duplicatas auto-geradas de meses anteriores a Mai/26 ══
+// Roda 1x por dispositivo. Marcador em localStorage evita reaplicacao.
+(function migrarV1(){
+  try{
+    var FLAG='abrii_mig_v1_cleanup_done';
+    if(localStorage.getItem(FLAG)==='1')return;
+    var alterado=false,remE=0,remS=0;
+    RAW.forEach(function(m){
+      if(m.key>='2026-05')return;
+      var oE=m.entradas.length,oS=m.saidas.length;
+      m.entradas=m.entradas.filter(function(e){return !e.contratoId;});
+      m.saidas=m.saidas.filter(function(x){return !x.contratoId;});
+      if(m.entradas.length!==oE||m.saidas.length!==oS){
+        m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
+        m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
+        m.l=m.e-m.s;
+        remE+=(oE-m.entradas.length);remS+=(oS-m.saidas.length);
+        alterado=true;
+      }
+    });
+    if(alterado){
+      try{localStorage.setItem('abrii_dre_data',JSON.stringify(RAW));}catch(e){}
+      try{sessionStorage.setItem('abrii_dre_data',JSON.stringify(RAW));}catch(e){}
+      console.log('Migracao v1 aplicada: removidos '+remE+' entradas e '+remS+' saidas auto-geradas de meses < Mai/26');
+    }
+    localStorage.setItem(FLAG,'1');
+  }catch(e){console.warn('Migracao v1 falhou:',e);}
+})();
 var activeLancMonth=RAW.length-1,activeTxMonth=-1,editMode=true;
 var metaGoal=parseInt(localStorage.getItem(META_KEY)||'30000');
 
