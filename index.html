@@ -148,10 +148,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .desc-pop-liq span:last-child{color:var(--teal);font-weight:700}
 .liq-sub{font-size:9px;color:var(--mu);margin-top:1px;font-family:'Raleway',sans-serif}
 .auto-gen-mark{font-size:8px;color:rgba(198,161,91,0.55);letter-spacing:1px;margin-left:4px}
+/* Selecao multi-linha (Cmd+click) */
+.erow{border-radius:6px;padding:3px 5px;margin-left:-5px;margin-right:-5px;transition:background .12s,outline .12s}
+.erow.selected{background:rgba(198,161,91,0.13);outline:1px solid rgba(198,161,91,0.55)}
+.selecao-box{position:fixed;bottom:62px;right:20px;z-index:99;background:var(--sf);border:1px solid var(--gold);border-radius:11px;padding:11px 16px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.55);display:none}
+.selecao-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:11px 11px 0 0}
+/* Badge ULTIMO MES na aba Contratos */
+.bdg.ultimo{background:rgba(255,184,0,0.16);color:#ffb800;border:1px solid rgba(255,184,0,0.4)}
 </style>
 </head>
 <body cz-shortcut-listen="true">
 <div class="save-ind" id="save-ind"><div class="save-dot"></div> Salvo automaticamente</div>
+<div class="selecao-box" id="selecao-box"></div>
 <div class="app">
 <aside class="sb">
   <div class="sb-logo">
@@ -473,6 +481,7 @@ var CORTE_CONTRATOS='2026-05';
   }catch(e){console.warn('limpezaContratos falhou:',e);}
 })();
 var activeLancMonth=RAW.length-1,activeTxMonth=-1,editMode=true;
+var selecaoLanc={en:{},sa:{}}; // selecao multi-linha (Cmd+click) para soma rapida
 var metaGoal=parseInt(localStorage.getItem(META_KEY)||'30000');
 
 function fmt(v){return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
@@ -494,6 +503,9 @@ function switchTab(name){
   if(name==='lancamentos')buildLancamentos();
   if(name==='contratos')buildContratos();
   if(name==='anual')buildAnual();
+  // Esconder caixa de selecao fora da aba Lancamentos
+  if(name!=='lancamentos'){var sb=document.getElementById('selecao-box');if(sb)sb.style.display='none';}
+  else updateSelecaoBox();
 }
 document.querySelectorAll('.tab,.ni').forEach(function(el){el.addEventListener('click',function(){if(el.dataset.tab)switchTab(el.dataset.tab);});});
 
@@ -663,7 +675,28 @@ function buildLancamentos(){
   pp.innerHTML+='<button class="mp" style="border-style:dashed" onclick="addNewMonth()" style="border-style:dashed;border-color:rgba(198,161,91,0.5);color:var(--gold)">&#43; Novo Mes</button>';
   renderEntryForm();
 }
-function selectLancMonth(i){activeLancMonth=i;buildLancamentos();updateMeta(i);}
+function selectLancMonth(i){activeLancMonth=i;selecaoLanc={en:{},sa:{}};buildLancamentos();updateMeta(i);updateSelecaoBox();}
+function toggleSelecaoLanc(ev,type,idx){
+  if(!(ev.metaKey||ev.ctrlKey))return;
+  ev.preventDefault();
+  if(selecaoLanc[type][idx])delete selecaoLanc[type][idx];
+  else selecaoLanc[type][idx]=true;
+  renderEntryForm();updateSelecaoBox();
+}
+function limparSelecao(){selecaoLanc={en:{},sa:{}};renderEntryForm();updateSelecaoBox();}
+function updateSelecaoBox(){
+  var box=document.getElementById('selecao-box');if(!box)return;
+  var m=RAW[activeLancMonth];if(!m){box.style.display='none';return;}
+  var totE=0,qE=0,totS=0,qS=0;
+  Object.keys(selecaoLanc.en).forEach(function(i){if(m.entradas[i]){totE+=parseFloat(m.entradas[i].val)||0;qE++;}});
+  Object.keys(selecaoLanc.sa).forEach(function(i){if(m.saidas[i]){totS+=parseFloat(m.saidas[i].val)||0;qS++;}});
+  if(qE+qS===0){box.style.display='none';return;}
+  box.style.display='block';
+  var linhas='';
+  if(qE>0)linhas+='<div style="color:var(--teal);font-family:Cinzel,serif;font-size:13px;margin-top:4px">&#9650; '+qE+' entrada'+(qE>1?'s':'')+': '+fmt2(totE)+'</div>';
+  if(qS>0)linhas+='<div style="color:var(--red);font-family:Cinzel,serif;font-size:13px;margin-top:4px">&#9660; '+qS+' saida'+(qS>1?'s':'')+': '+fmt2(totS)+'</div>';
+  box.innerHTML='<div style="font-size:8px;letter-spacing:3px;color:var(--mu);text-transform:uppercase">Selecao</div>'+linhas+'<button onclick="limparSelecao()" style="background:none;border:1px solid var(--br);color:var(--mu);font-size:9px;padding:3px 8px;border-radius:5px;cursor:pointer;margin-top:8px;font-family:Raleway,sans-serif;letter-spacing:1px;text-transform:uppercase">Limpar</button>';
+}
 function addNewMonth(){var last=RAW[RAW.length-1];var p=last.key.split('-').map(Number);var nm=p[1]===12?1:p[1]+1,ny=p[1]===12?p[0]+1:p[0];var key=ny+'-'+(nm<10?'0':'')+nm;var mns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];RAW.push({label:mns[nm]+'/'+String(ny).slice(2),key:key,e:0,s:0,l:0,entradas:[],saidas:[]});activeLancMonth=RAW.length-1;var added=popularMesDeContratos(activeLancMonth);if(added.entradas+added.saidas>0){setTimeout(function(){showToast(mns[nm]+'/'+String(ny).slice(2)+': '+added.entradas+' entradas e '+added.saidas+' saidas auto-geradas','var(--teal)');},100);}updateKPIs();updateCharts();buildLancamentos();autoSave();}
 
 function renderEntryForm(){
@@ -696,15 +729,27 @@ function eRow(desc,date,val,type,idx,status,descontos,contratoId){
   var descTxt=hasDesc?'&#8854; -R$ '+Math.round(totDesc).toLocaleString('pt-BR')+(descArr.length>1?' ('+descArr.length+')':''):'&#8854; desc';
   var descTitle=hasDesc?descArr.map(function(d){return (d.desc||'?')+': R$ '+(d.val||0).toFixed(2);}).join(' + ')+' | Liquido R$ '+(val-totDesc).toFixed(2):'Adicionar desconto (apenas visualizacao, nao afeta o total)';
   var ctrMark=contratoId?'<span class="auto-gen-mark" title="Gerado automaticamente do contrato">&#8635; auto</span>':'';
+  // Verifica se essa linha e ultima parcela de contrato (badge na linha)
+  var ultimoMark='';
+  if(contratoId){
+    var c=CONTRATOS.find(function(x){return x.id===contratoId;});
+    if(c&&c.totalParcelas){
+      var mKey=RAW[activeLancMonth].key;
+      var p=parcelaDoMes(c,mKey);
+      if(p===c.totalParcelas)ultimoMark='<span class="auto-gen-mark" style="color:#ffb800" title="Ultima parcela do contrato">&#127937; ultimo</span>';
+    }
+  }
+  var isSel=selecaoLanc[type]&&selecaoLanc[type][idx];
   // ORDEM: Descricao | Valor | Descontos | Data | Status
-  return '<div class="erow" id="'+type+'-row-'+idx+'">'
-    +'<input class="lbl-i" value="'+esc+'" onchange="updateDesc(\''+type+'\','+idx+',this.value)">'
-    +'<div class="vw"><span>R$</span><input class="vi" type="text" inputmode="decimal" value="'+(val||'')+'" style="width:'+w+'" oninput="updateVal(\''+type+'\','+idx+',this)"></div>'
-    +(type==='en'?'<div class="desc-ind"><button class="'+descCls+'" title="'+descTitle+'" onclick="openDescModal(\''+type+'\','+idx+')">'+descTxt+'</button></div>':'')
-    +'<div class="date-wrap"><input type="text" class="date-i" value="'+(date||'')+'" placeholder="dd/mm" onblur="smartDate(\''+type+'\','+idx+',this)" onkeydown="if(event.key===\'Enter\'||event.key===\'Tab\'){smartDate(\''+type+'\','+idx+',this)}"></div>'
-    +'<select class="st-sel '+status+'" onchange="updateStatus(\''+type+'\','+idx+',this)">'+opts+'</select>'
+  return '<div class="erow'+(isSel?' selected':'')+'" id="'+type+'-row-'+idx+'" onclick="toggleSelecaoLanc(event,\''+type+'\','+idx+')" title="'+esc+'">'
+    +'<input class="lbl-i" value="'+esc+'" title="'+esc+'" onchange="updateDesc(\''+type+'\','+idx+',this.value)" onclick="event.stopPropagation()">'
+    +'<div class="vw"><span>R$</span><input class="vi" type="text" inputmode="decimal" value="'+(val||'')+'" style="width:'+w+'" oninput="updateVal(\''+type+'\','+idx+',this)" onclick="event.stopPropagation()"></div>'
+    +(type==='en'?'<div class="desc-ind"><button class="'+descCls+'" title="'+descTitle+'" onclick="event.stopPropagation();openDescModal(\''+type+'\','+idx+')">'+descTxt+'</button></div>':'')
+    +'<div class="date-wrap"><input type="text" class="date-i" value="'+(date||'')+'" placeholder="dd/mm" onblur="smartDate(\''+type+'\','+idx+',this)" onkeydown="if(event.key===\'Enter\'||event.key===\'Tab\'){smartDate(\''+type+'\','+idx+',this)}" onclick="event.stopPropagation()"></div>'
+    +'<select class="st-sel '+status+'" onchange="updateStatus(\''+type+'\','+idx+',this)" onclick="event.stopPropagation()">'+opts+'</select>'
     +ctrMark
-    +'<div class="del-btn" onclick="delRow(\''+type+'\','+idx+')">&#215;</div>'
+    +ultimoMark
+    +'<div class="del-btn" onclick="event.stopPropagation();delRow(\''+type+'\','+idx+')">&#215;</div>'
     +'</div>';
 }
 
@@ -712,7 +757,7 @@ function updateDesc(type,idx,v){RAW[activeLancMonth][type==='en'?'entradas':'sai
 function updateStatus(type,idx,el){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].status=el.value;el.className='st-sel '+el.value;updateKPIs();autoSave();}
 function smartDate(type,idx,el){var v=el.value.trim();var arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];if(!v){arr[idx].date='';return;}if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){arr[idx].date=v;return;}if(/^\d{2}\/\d{2}\/\d{2}$/.test(v)){v=v.slice(0,6)+'20'+v.slice(6);el.value=v;}else if(/^\d{1,2}\/\d{1,2}$/.test(v)){var p=v.split('/').map(function(s){return s.padStart(2,'0');});var yr=RAW[activeLancMonth].key.split('-')[0];v=p[0]+'/'+p[1]+'/'+yr;el.value=v;}else if(/^\d{1,2}$/.test(v)){var dd=v.padStart(2,'0');var kp=RAW[activeLancMonth].key.split('-');v=dd+'/'+kp[1]+'/'+kp[0];el.value=v;}arr[idx].date=v;RAW[activeLancMonth][type==='en'?'entradas':'saidas']=sortByDate(RAW[activeLancMonth][type==='en'?'entradas':'saidas']);autoSave();renderEntryForm();}
 function updateVal(type,idx,el){var raw=el.value.replace(/\.(?=\d{3})/g,'').replace(',','.');var v=parseFloat(raw)||0;RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].val=v;el.style.width=valWidth(v);recalcMonth(activeLancMonth);updateEntrySummary();updateKPIs();updateCharts();}
-function addRow(type){RAW[activeLancMonth][type==='en'?'entradas':'saidas'].unshift({desc:'',date:'',val:0,status:'pnd'});renderEntryForm();setTimeout(function(){var f=document.querySelector('#'+type+'-rows .lbl-i');if(f)f.focus();},50);}
+function addRow(type){RAW[activeLancMonth][type==='en'?'entradas':'saidas'].unshift({desc:'',date:'',val:0,status:'pnd'});selecaoLanc={en:{},sa:{}};renderEntryForm();updateSelecaoBox();setTimeout(function(){var f=document.querySelector('#'+type+'-rows .lbl-i');if(f)f.focus();},50);}
 function delRow(type,idx){
   var arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];
   var item=arr[idx];
@@ -721,7 +766,8 @@ function delRow(type,idx){
   }
   pushUndo('deleteRow',{monthIdx:activeLancMonth,type:type==='en'?'entradas':'saidas',rowIdx:idx,item:JSON.parse(JSON.stringify(item))});
   arr.splice(idx,1);
-  recalcMonth(activeLancMonth);renderEntryForm();updateKPIs();updateCharts();autoSave();
+  selecaoLanc={en:{},sa:{}};
+  recalcMonth(activeLancMonth);renderEntryForm();updateKPIs();updateCharts();autoSave();updateSelecaoBox();
 }
 function autoSave(){
   var saved=false;
@@ -1213,7 +1259,8 @@ function buildContratos(){
       var pct=Math.min(100,(parcShow/c.totalParcelas)*100);
       prog='<div class="ctr-prog"><span>'+parcShow+'/'+c.totalParcelas+'</span><div class="ctr-prog-bar"><div class="ctr-prog-fill" style="width:'+pct+'%"></div></div></div>';
     }else{prog='<span style="color:var(--mu);font-size:10px">&infin; recorrente</span>';}
-    var stBd=!c.ativo?'<span class="bdg nt">Pausado</span>':encerrado?'<span class="bdg nt">Encerrado</span>':naoIniciou?'<span class="bdg nt">Futuro</span>':'<span class="bdg gn">Ativo</span>';
+    var ehUltimoMes=c.totalParcelas&&parc===c.totalParcelas;
+    var stBd=!c.ativo?'<span class="bdg nt">Pausado</span>':encerrado?'<span class="bdg nt">Encerrado</span>':naoIniciou?'<span class="bdg nt">Futuro</span>':ehUltimoMes?'<span class="bdg ultimo">&#127937; ULTIMO MES</span>':'<span class="bdg gn">Ativo</span>';
     var td=(c.descontos||[]).reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
     var liq=td>0?'<div class="ctr-liq">liq. R$ '+(valPar-td).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'';
     var prox=encerrado?'—':(c.totalParcelas&&parc+1>c.totalParcelas?'ultimo mes ja passou':descricaoGerada(c,parc+1));
