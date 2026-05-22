@@ -151,6 +151,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 /* Selecao multi-linha (Cmd+click) */
 .erow{border-radius:6px;padding:3px 5px;margin-left:-5px;margin-right:-5px;transition:background .12s,outline .12s}
 .erow.selected{background:rgba(198,161,91,0.13);outline:1px solid rgba(198,161,91,0.55)}
+body.cmd-down .erow{cursor:crosshair}
+body.cmd-down .erow:hover{background:rgba(198,161,91,0.07);outline:1px dashed rgba(198,161,91,0.4)}
+body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
 .selecao-box{position:fixed;bottom:62px;right:20px;z-index:99;background:var(--sf);border:1px solid var(--gold);border-radius:11px;padding:11px 16px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.55);display:none}
 .selecao-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:11px 11px 0 0}
 /* Badge ULTIMO MES na aba Contratos */
@@ -684,6 +687,10 @@ function toggleSelecaoLanc(ev,type,idx){
   renderEntryForm();updateSelecaoBox();
 }
 function limparSelecao(){selecaoLanc={en:{},sa:{}};renderEntryForm();updateSelecaoBox();}
+// Feedback visual quando Cmd/Ctrl esta pressionado: muda cursor + bloqueia inputs
+document.addEventListener('keydown',function(e){if(e.metaKey||e.ctrlKey)document.body.classList.add('cmd-down');});
+document.addEventListener('keyup',function(e){if(!e.metaKey&&!e.ctrlKey)document.body.classList.remove('cmd-down');});
+window.addEventListener('blur',function(){document.body.classList.remove('cmd-down');});
 function updateSelecaoBox(){
   var box=document.getElementById('selecao-box');if(!box)return;
   var m=RAW[activeLancMonth];if(!m){box.style.display='none';return;}
@@ -741,12 +748,14 @@ function eRow(desc,date,val,type,idx,status,descontos,contratoId){
   }
   var isSel=selecaoLanc[type]&&selecaoLanc[type][idx];
   // ORDEM: Descricao | Valor | Descontos | Data | Status
+  // stopPropagation condicional: deixa Cmd/Ctrl+click propagar pra row (selecionar)
+  var sp='if(event.metaKey||event.ctrlKey){event.preventDefault();this.blur&&this.blur();toggleSelecaoLanc(event,\''+type+'\','+idx+');return false;}event.stopPropagation();';
   return '<div class="erow'+(isSel?' selected':'')+'" id="'+type+'-row-'+idx+'" onclick="toggleSelecaoLanc(event,\''+type+'\','+idx+')" title="'+esc+'">'
-    +'<input class="lbl-i" value="'+esc+'" title="'+esc+'" onchange="updateDesc(\''+type+'\','+idx+',this.value)" onclick="event.stopPropagation()">'
-    +'<div class="vw"><span>R$</span><input class="vi" type="text" inputmode="decimal" value="'+(val||'')+'" style="width:'+w+'" oninput="updateVal(\''+type+'\','+idx+',this)" onclick="event.stopPropagation()"></div>'
+    +'<input class="lbl-i" value="'+esc+'" title="'+esc+'" onchange="updateDesc(\''+type+'\','+idx+',this.value)" onmousedown="'+sp+'">'
+    +'<div class="vw"><span>R$</span><input class="vi" type="text" inputmode="decimal" value="'+(val||'')+'" style="width:'+w+'" oninput="updateVal(\''+type+'\','+idx+',this)" onmousedown="'+sp+'"></div>'
     +(type==='en'?'<div class="desc-ind"><button class="'+descCls+'" title="'+descTitle+'" onclick="event.stopPropagation();openDescModal(\''+type+'\','+idx+')">'+descTxt+'</button></div>':'')
-    +'<div class="date-wrap"><input type="text" class="date-i" value="'+(date||'')+'" placeholder="dd/mm" onblur="smartDate(\''+type+'\','+idx+',this)" onkeydown="if(event.key===\'Enter\'||event.key===\'Tab\'){smartDate(\''+type+'\','+idx+',this)}" onclick="event.stopPropagation()"></div>'
-    +'<select class="st-sel '+status+'" onchange="updateStatus(\''+type+'\','+idx+',this)" onclick="event.stopPropagation()">'+opts+'</select>'
+    +'<div class="date-wrap"><input type="text" class="date-i" value="'+(date||'')+'" placeholder="dd/mm" onblur="smartDate(\''+type+'\','+idx+',this)" onkeydown="if(event.key===\'Enter\'||event.key===\'Tab\'){smartDate(\''+type+'\','+idx+',this)}" onmousedown="'+sp+'"></div>'
+    +'<select class="st-sel '+status+'" onchange="updateStatus(\''+type+'\','+idx+',this)" onmousedown="'+sp+'">'+opts+'</select>'
     +ctrMark
     +ultimoMark
     +'<div class="del-btn" onclick="event.stopPropagation();delRow(\''+type+'\','+idx+')">&#215;</div>'
