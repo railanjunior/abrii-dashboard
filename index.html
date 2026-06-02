@@ -427,14 +427,15 @@ Aluguel SALA	2500	20/04/2026
 </div>
 
 <div class="overlay" id="renOverlay">
-  <div class="modal-lg">
+  <div class="modal-lg" style="position:relative">
+    <button onclick="cancelarRenovacoes()" title="Fechar (nao apaga nada)" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:5px" onmouseover="this.style.color='var(--tx)';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='var(--mu)';this.style.background='none'">&times;</button>
     <h3 id="ren-modal-title">RENOVACAO DE CONTRATOS</h3>
-    <p style="font-size:11px;color:var(--mu);margin-bottom:14px;line-height:1.6">Estes contratos finalizaram a ultima parcela. Decida cada um antes de gerar o mes.</p>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:14px;line-height:1.6">Estes contratos finalizaram a ultima parcela. Decida cada um antes de gerar o mes. Contratos sem decisao continuam pendentes pra proxima vez.</p>
     <div id="ren-list"></div>
     <p style="font-size:9.5px;color:var(--mu);margin-top:10px;line-height:1.55"><b style="color:var(--cream)">Renovar</b> cria um novo contrato com o mesmo servico/cliente, comecando no mes atual. <b style="color:var(--cream)">Encerrar</b> marca como nao renovado e nao pergunta de novo.</p>
     <div class="m-act-lg">
-      <button class="btn-o" onclick="cancelarRenovacoes()">Cancelar tudo</button>
-      <button class="btn-p" id="ren-confirmar-btn" onclick="aplicarRenovacoes()">Confirmar e gerar mes</button>
+      <button class="btn-o" onclick="cancelarRenovacoes()">Decidir depois</button>
+      <button class="btn-p" id="ren-confirmar-btn" onclick="aplicarRenovacoes()">Confirmar decisoes</button>
     </div>
   </div>
 </div>
