@@ -520,7 +520,7 @@ function fbInitialSync(){
     if(remote&&remote.raw&&remote.raw.length>0){
       RAW=remote.raw;
       if(remote.contratos)CONTRATOS=remote.contratos;
-      if(remote.renovacoes){renovacoes=remote.renovacoes;saveRenovacoes();}
+      if(remote.renovacoes){renovacoes=remote.renovacoes;Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});saveRenovacoes();}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -1369,11 +1369,12 @@ function saveRenovacoes(){try{localStorage.setItem(REN_KEY,JSON.stringify(renova
 function mesAnterior(key){var p=keyToIdx(key);var nm=p[1]===1?12:p[1]-1;var ny=p[1]===1?p[0]-1:p[0];return ny+'-'+String(nm).padStart(2,'0');}
 function verificarRenovacoesPendentes(refKey){
   // Contratos com totalParcelas que tiveram a ultima parcela em mes <= mes anterior ao refKey
-  // e ainda nao foram decididos (renovacoes[id] vazio)
+  // e ainda nao foram decididos (renovacoes[id] vazio ou 'pendente-*' antigo do bug)
   var lista=[];
   CONTRATOS.forEach(function(c){
     if(!c.ativo||!c.totalParcelas)return;
-    if(renovacoes[c.id])return;
+    var d=renovacoes[c.id];
+    if(d && String(d).indexOf('pendente-')!==0)return; // decisao real: pula
     var pAtual=parcelaDoMes(c,refKey);
     // Encerrado se parcela atual > totalParcelas (ja era ultimo mes anterior ao refKey ou antes)
     if(pAtual>c.totalParcelas){
