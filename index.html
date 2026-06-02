@@ -168,6 +168,30 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
 .selecao-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:11px 11px 0 0}
 /* Badge ULTIMO MES na aba Contratos */
 .bdg.ultimo{background:rgba(255,184,0,0.16);color:#ffb800;border:1px solid rgba(255,184,0,0.4)}
+/* ══ MODAL RENOVACAO ══ */
+.ren-card{background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:13px;margin-bottom:10px;transition:border-color .15s}
+.ren-card.decided-ren{border-color:rgba(47,170,106,0.5)}.ren-card.decided-end{border-color:rgba(224,85,85,0.45);opacity:.65}
+.ren-head{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
+.ren-icon{flex:0 0 28px;height:28px;border-radius:50%;background:rgba(255,184,0,0.15);color:#ffb800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ren-info{flex:1;min-width:0}
+.ren-nome{font-family:'Cinzel',serif;font-size:12px;color:var(--cream);margin-bottom:2px}
+.ren-detalhe{font-size:10px;color:var(--mu);line-height:1.55}
+.ren-detalhe b{color:var(--gold)}
+.ren-actions{display:flex;gap:7px;margin-top:5px}
+.ren-btn{flex:1;padding:7px 11px;border-radius:6px;font-family:'Raleway',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:1px solid var(--br);background:var(--sf);color:var(--mu);transition:all .15s}
+.ren-btn:hover{color:var(--tx);border-color:rgba(47,153,165,0.4)}
+.ren-btn.on-ren{background:rgba(47,170,106,0.12);border-color:rgba(47,170,106,0.5);color:var(--green)}
+.ren-btn.on-end{background:rgba(224,85,85,0.1);border-color:rgba(224,85,85,0.45);color:var(--red)}
+.ren-form{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--br);grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ren-card.decided-ren .ren-form{display:grid}
+.ren-form-field label{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px}
+.ren-form-field input{width:100%;background:var(--sf);border:1px solid var(--br);color:var(--tx);font-family:'Raleway',sans-serif;font-size:11px;border-radius:5px;padding:6px 8px;outline:none}
+.ren-banner{background:linear-gradient(90deg,rgba(255,184,0,0.15),rgba(255,184,0,0.05));border:1px solid rgba(255,184,0,0.4);border-radius:8px;padding:9px 13px;margin:0 18px 12px;display:flex;align-items:center;gap:11px;font-size:11px;cursor:pointer;color:var(--cream);transition:all .15s}
+.ren-banner:hover{background:linear-gradient(90deg,rgba(255,184,0,0.22),rgba(255,184,0,0.08));border-color:rgba(255,184,0,0.6)}
+.ren-banner-ic{font-size:16px;flex-shrink:0}
+.ren-banner-txt{flex:1}
+.ren-banner-txt b{color:#ffb800}
+.ren-banner-arrow{font-size:13px;color:#ffb800}
 </style>
 </head>
 <body cz-shortcut-listen="true">
@@ -402,6 +426,19 @@ Aluguel SALA	2500	20/04/2026
   </div>
 </div>
 
+<div class="overlay" id="renOverlay">
+  <div class="modal-lg">
+    <h3 id="ren-modal-title">RENOVACAO DE CONTRATOS</h3>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:14px;line-height:1.6">Estes contratos finalizaram a ultima parcela. Decida cada um antes de gerar o mes.</p>
+    <div id="ren-list"></div>
+    <p style="font-size:9.5px;color:var(--mu);margin-top:10px;line-height:1.55"><b style="color:var(--cream)">Renovar</b> cria um novo contrato com o mesmo servico/cliente, comecando no mes atual. <b style="color:var(--cream)">Encerrar</b> marca como nao renovado e nao pergunta de novo.</p>
+    <div class="m-act-lg">
+      <button class="btn-o" onclick="cancelarRenovacoes()">Cancelar tudo</button>
+      <button class="btn-p" id="ren-confirmar-btn" onclick="aplicarRenovacoes()">Confirmar e gerar mes</button>
+    </div>
+  </div>
+</div>
+
 <script type="application/json" id="contratos-embedded">
 [
 {"id":"ctr-en-001","tipo":"entrada","servico":"Tráfego Pago","cliente":"SC Representações/Gilmar","valorBase":2000,"dia":5,"totalParcelas":3,"mesInicio":"2026-03","ativo":true,"flagRevisar":false,"obs":"","descontos":[{"desc":"Desconto","val":1000}],"ajustes":[]},
@@ -473,7 +510,7 @@ function fbPush(){
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
     var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
-    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
   },800);
 }
 function fbInitialSync(){
@@ -483,6 +520,7 @@ function fbInitialSync(){
     if(remote&&remote.raw&&remote.raw.length>0){
       RAW=remote.raw;
       if(remote.contratos)CONTRATOS=remote.contratos;
+      if(remote.renovacoes){renovacoes=remote.renovacoes;saveRenovacoes();}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -773,13 +811,36 @@ function updateSelecaoBox(){
   if(qS>0)linhas+='<div style="color:var(--red);font-family:Cinzel,serif;font-size:13px;margin-top:4px">&#9660; '+qS+' saida'+(qS>1?'s':'')+': '+fmt2(totS)+'</div>';
   box.innerHTML='<div style="font-size:8px;letter-spacing:3px;color:var(--mu);text-transform:uppercase">Selecao</div>'+linhas+'<button onclick="limparSelecao()" style="background:none;border:1px solid var(--br);color:var(--mu);font-size:9px;padding:3px 8px;border-radius:5px;cursor:pointer;margin-top:8px;font-family:Raleway,sans-serif;letter-spacing:1px;text-transform:uppercase">Limpar</button>';
 }
-function addNewMonth(){var last=RAW[RAW.length-1];var p=last.key.split('-').map(Number);var nm=p[1]===12?1:p[1]+1,ny=p[1]===12?p[0]+1:p[0];var key=ny+'-'+(nm<10?'0':'')+nm;var mns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];RAW.push({label:mns[nm]+'/'+String(ny).slice(2),key:key,e:0,s:0,l:0,entradas:[],saidas:[]});activeLancMonth=RAW.length-1;var added=popularMesDeContratos(activeLancMonth);if(added.entradas+added.saidas>0){setTimeout(function(){showToast(mns[nm]+'/'+String(ny).slice(2)+': '+added.entradas+' entradas e '+added.saidas+' saidas auto-geradas','var(--teal)');},100);}updateKPIs();updateCharts();buildLancamentos();autoSave();}
+function addNewMonth(){
+  var last=RAW[RAW.length-1];var p=last.key.split('-').map(Number);
+  var nm=p[1]===12?1:p[1]+1,ny=p[1]===12?p[0]+1:p[0];
+  var key=ny+'-'+(nm<10?'0':'')+nm;
+  var mns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Verifica renovacoes ANTES de criar
+  var temPendente=verificarRenovacoesPendentes(key).length>0;
+  RAW.push({label:mns[nm]+'/'+String(ny).slice(2),key:key,e:0,s:0,l:0,entradas:[],saidas:[]});
+  activeLancMonth=RAW.length-1;
+  var doPopulate=function(){
+    var added=popularMesDeContratos(activeLancMonth);
+    if(added.entradas+added.saidas>0){setTimeout(function(){showToast(mns[nm]+'/'+String(ny).slice(2)+': '+added.entradas+' entradas e '+added.saidas+' saidas auto-geradas','var(--teal)');},150);}
+    updateKPIs();updateCharts();buildLancamentos();autoSave();
+  };
+  if(temPendente){abrirModalRenovacao(key,doPopulate);}
+  else{doPopulate();}
+}
 
 function renderEntryForm(){
   var m=RAW[activeLancMonth];
   // Garante ordem por data (mais recente primeiro) antes de renderizar
   m.entradas=sortByDate(m.entradas);
   m.saidas=sortByDate(m.saidas);
+  // Banner de renovacoes pendentes acima do form
+  var bannerWrap=document.getElementById('ren-banner-wrap');
+  if(!bannerWrap){bannerWrap=document.createElement('div');bannerWrap.id='ren-banner-wrap';var entryWrap=document.getElementById('entryForms');entryWrap.parentNode.insertBefore(bannerWrap,entryWrap);}
+  var pend=verificarRenovacoesPendentes(m.key);
+  if(pend.length>0&&!IS_READONLY){
+    bannerWrap.innerHTML='<div class="ren-banner" onclick="abrirModalRenovacao(\''+m.key+'\',function(){renderEntryForm();})"><div class="ren-banner-ic">&#128276;</div><div class="ren-banner-txt"><b>'+pend.length+' contrato'+(pend.length>1?'s':'')+' aguardando decisao de renovacao</b> &middot; clique para revisar</div><div class="ren-banner-arrow">&rsaquo;</div></div>';
+  } else {bannerWrap.innerHTML='';}
   var ef=document.getElementById('entryForms');ef.innerHTML='';
   // COLUNAS: Descricao | Valor | Data | Status  (Valor ANTES de Data)
   var hint='<div class="col-hdr"><span class="ch-l ch-desc">Descricao</span><span class="ch-l ch-val">Valor</span><span class="ch-l ch-date">Data</span><span class="ch-l ch-st">Status</span></div>';
@@ -1222,7 +1283,7 @@ function exportHTML(){
   setTimeout(function(){URL.revokeObjectURL(lk.href);document.body.removeChild(lk);},100);
 }
 function addNewMonthFromTx(){addNewMonth();switchTab('lancamentos');}
-function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);location.reload();}}
+function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
 
 // ══════════════════════════════════════════════
 // CONTRATOS RECORRENTES
@@ -1297,6 +1358,129 @@ function popularMesDeContratos(monthIdx){
   recalcMonthNoSave(monthIdx);
   return {entradas:ae,saidas:as};
 }
+// ══ RENOVACAO DE CONTRATOS ══
+var REN_KEY='abrii_renovacoes';
+var renovacoes={};
+try{renovacoes=JSON.parse(localStorage.getItem(REN_KEY)||'{}');}catch(e){}
+var renCtx={refKey:null,pendentes:[],decisoes:{},onComplete:null};
+function saveRenovacoes(){try{localStorage.setItem(REN_KEY,JSON.stringify(renovacoes));}catch(e){}}
+function mesAnterior(key){var p=keyToIdx(key);var nm=p[1]===1?12:p[1]-1;var ny=p[1]===1?p[0]-1:p[0];return ny+'-'+String(nm).padStart(2,'0');}
+function verificarRenovacoesPendentes(refKey){
+  // Contratos com totalParcelas que tiveram a ultima parcela em mes <= mes anterior ao refKey
+  // e ainda nao foram decididos (renovacoes[id] vazio)
+  var lista=[];
+  CONTRATOS.forEach(function(c){
+    if(!c.ativo||!c.totalParcelas)return;
+    if(renovacoes[c.id])return;
+    var pAtual=parcelaDoMes(c,refKey);
+    // Encerrado se parcela atual > totalParcelas (ja era ultimo mes anterior ao refKey ou antes)
+    if(pAtual>c.totalParcelas){
+      // ultimo mes ativo do contrato
+      var ultMesIdx=keyToIdx(c.mesInicio);
+      ultMesIdx[1]+=(c.totalParcelas-1);
+      while(ultMesIdx[1]>12){ultMesIdx[1]-=12;ultMesIdx[0]+=1;}
+      var ultKey=ultMesIdx[0]+'-'+String(ultMesIdx[1]).padStart(2,'0');
+      lista.push({c:c,ultKey:ultKey});
+    }
+  });
+  return lista;
+}
+function abrirModalRenovacao(refKey,onComplete){
+  var pendentes=verificarRenovacoesPendentes(refKey);
+  if(pendentes.length===0){if(onComplete)onComplete();return false;}
+  renCtx={refKey:refKey,pendentes:pendentes,decisoes:{},onComplete:onComplete};
+  document.getElementById('ren-modal-title').textContent='RENOVACAO PENDENTE - '+pendentes.length+' CONTRATO'+(pendentes.length>1?'S':'');
+  renderRenovacaoList();
+  document.getElementById('renOverlay').classList.add('open');
+  return true;
+}
+function renderRenovacaoList(){
+  var wrap=document.getElementById('ren-list');wrap.innerHTML='';
+  var mns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var labMes=function(k){var p=keyToIdx(k);return mns[p[1]]+'/'+String(p[0]).slice(2);};
+  renCtx.pendentes.forEach(function(it,i){
+    var c=it.c;
+    var dec=renCtx.decisoes[c.id]||'';
+    var cls=dec==='renovar'?' decided-ren':(dec==='encerrar'?' decided-end':'');
+    var nome=(c.servico||'').replace(/^f\.\s*/,'').trim()+(c.cliente?(' / '+c.cliente):'');
+    var valAtual=valorDaParcela(c,c.totalParcelas);
+    var defValor=valAtual;
+    var defTotal=c.totalParcelas;
+    var custom=renCtx.decisoes[c.id+'_form']||{};
+    wrap.innerHTML+='<div class="ren-card'+cls+'" id="ren-card-'+i+'">'
+      +'<div class="ren-head"><div class="ren-icon">&#9888;</div><div class="ren-info">'
+      +'<div class="ren-nome">'+nome+'</div>'
+      +'<div class="ren-detalhe">Ultima parcela: <b>'+c.totalParcelas+'/'+c.totalParcelas+'</b> em <b>'+labMes(it.ultKey)+'</b> &nbsp;&middot;&nbsp; Valor: <b>R$ '+valAtual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b></div>'
+      +'</div></div>'
+      +'<div class="ren-actions">'
+      +'<button class="ren-btn '+(dec==='renovar'?'on-ren':'')+'" onclick="decidirRenovacao('+i+',\'renovar\')">&#10003; Renovar</button>'
+      +'<button class="ren-btn '+(dec==='encerrar'?'on-end':'')+'" onclick="decidirRenovacao('+i+',\'encerrar\')">&#10005; Encerrar</button>'
+      +'</div>'
+      +'<div class="ren-form">'
+      +'<div class="ren-form-field"><label>Novo total parcelas</label><input type="number" min="1" value="'+(custom.total||defTotal)+'" oninput="setRenForm('+i+',\'total\',this.value)"></div>'
+      +'<div class="ren-form-field"><label>Novo valor (R$)</label><input type="number" step="0.01" value="'+(custom.valor||defValor)+'" oninput="setRenForm('+i+',\'valor\',this.value)"></div>'
+      +'<div class="ren-form-field"><label>Mes inicio (YYYY-MM)</label><input type="text" value="'+(custom.inicio||renCtx.refKey)+'" oninput="setRenForm('+i+',\'inicio\',this.value)"></div>'
+      +'</div>'
+      +'</div>';
+  });
+}
+function decidirRenovacao(i,acao){
+  var c=renCtx.pendentes[i].c;
+  if(renCtx.decisoes[c.id]===acao){delete renCtx.decisoes[c.id];}else{renCtx.decisoes[c.id]=acao;}
+  renderRenovacaoList();
+}
+function setRenForm(i,campo,val){
+  var c=renCtx.pendentes[i].c;
+  var k=c.id+'_form';
+  if(!renCtx.decisoes[k])renCtx.decisoes[k]={};
+  renCtx.decisoes[k][campo]=val;
+}
+function cancelarRenovacoes(){
+  document.getElementById('renOverlay').classList.remove('open');
+  // Nao marca como decidido - vai perguntar de novo na proxima
+  if(renCtx.onComplete)renCtx.onComplete();
+}
+function aplicarRenovacoes(){
+  var renovados=0,encerrados=0;
+  renCtx.pendentes.forEach(function(it){
+    var c=it.c;
+    var d=renCtx.decisoes[c.id];
+    if(!d){renovacoes[c.id]='pendente-'+Date.now();return;} // tratado como nao decidido - pula
+    if(d==='encerrar'){
+      renovacoes[c.id]='encerrado-'+renCtx.refKey;
+      encerrados++;
+    } else if(d==='renovar'){
+      var f=renCtx.decisoes[c.id+'_form']||{};
+      var novoTotal=parseInt(f.total)||c.totalParcelas;
+      var novoValor=parseFloat(f.valor)||valorDaParcela(c,c.totalParcelas);
+      var novoInicio=(f.inicio||renCtx.refKey).trim();
+      if(!/^\d{4}-\d{2}$/.test(novoInicio))novoInicio=renCtx.refKey;
+      var novo=JSON.parse(JSON.stringify(c));
+      novo.id='ctr-ren-'+Date.now()+'-'+Math.random().toString(36).slice(2,5);
+      novo.totalParcelas=novoTotal;
+      novo.valorBase=novoValor;
+      novo.mesInicio=novoInicio;
+      novo.ativo=true;
+      novo.flagRevisar=false;
+      novo.ajustes=[]; // limpa ajustes do antigo
+      novo.obs=(c.obs||'')+(c.obs?' | ':'')+'Renovado de '+c.id+' em '+renCtx.refKey;
+      CONTRATOS.push(novo);
+      renovacoes[c.id]='renovado-'+novoInicio+'-'+novo.id;
+      renovados++;
+    }
+  });
+  saveRenovacoes();saveContratos();
+  document.getElementById('renOverlay').classList.remove('open');
+  // Repopula mes
+  var mIdx=RAW.findIndex(function(m){return m.key===renCtx.refKey;});
+  if(mIdx>=0){popularMesDeContratos(mIdx);updateKPIs();updateCharts();autoSave();}
+  if(document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
+  if(document.getElementById('tab-contratos').style.display!=='none')buildContratos();
+  showToast(renovados+' renovado'+(renovados!==1?'s':'')+', '+encerrados+' encerrado'+(encerrados!==1?'s':''),'var(--teal)');
+  if(renCtx.onComplete)renCtx.onComplete();
+}
+document.getElementById('renOverlay').addEventListener('click',function(e){if(e.target===e.currentTarget)cancelarRenovacoes();});
+
 function ensureCurrentMonth(){
   var now=new Date();
   var curKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
