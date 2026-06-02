@@ -1362,6 +1362,8 @@ function popularMesDeContratos(monthIdx){
 var REN_KEY='abrii_renovacoes';
 var renovacoes={};
 try{renovacoes=JSON.parse(localStorage.getItem(REN_KEY)||'{}');}catch(e){}
+// Migracao: limpa entradas "pendente-*" do bug anterior (decisao automatica vazia)
+Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});
 var renCtx={refKey:null,pendentes:[],decisoes:{},onComplete:null};
 function saveRenovacoes(){try{localStorage.setItem(REN_KEY,JSON.stringify(renovacoes));}catch(e){}}
 function mesAnterior(key){var p=keyToIdx(key);var nm=p[1]===1?12:p[1]-1;var ny=p[1]===1?p[0]-1:p[0];return ny+'-'+String(nm).padStart(2,'0');}
@@ -1445,7 +1447,7 @@ function aplicarRenovacoes(){
   renCtx.pendentes.forEach(function(it){
     var c=it.c;
     var d=renCtx.decisoes[c.id];
-    if(!d){renovacoes[c.id]='pendente-'+Date.now();return;} // tratado como nao decidido - pula
+    if(!d)return; // sem decisao - NAO marca, continua pendente pra proxima vez
     if(d==='encerrar'){
       renovacoes[c.id]='encerrado-'+renCtx.refKey;
       encerrados++;
