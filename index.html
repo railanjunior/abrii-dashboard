@@ -346,6 +346,7 @@ Aluguel SALA	2500	20/04/2026
 <div class="overlay" id="ctrOverlay">
   <div class="modal-lg">
     <h3 id="ctr-modal-title">NOVO CONTRATO</h3>
+    <button onclick="openImportContrato()" id="ctr-import-btn" style="background:linear-gradient(135deg,rgba(198,161,91,0.18),rgba(47,153,165,0.18));border:1px dashed rgba(198,161,91,0.55);color:var(--gold);font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;padding:11px 14px;cursor:pointer;width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.background='linear-gradient(135deg,rgba(198,161,91,0.28),rgba(47,153,165,0.28))'" onmouseout="this.style.borderColor='rgba(198,161,91,0.55)';this.style.background='linear-gradient(135deg,rgba(198,161,91,0.18),rgba(47,153,165,0.18))'">&#128206; Importar de contrato escaneado (via Claude)</button>
     <div class="mf-row">
       <div class="mf-sm"><label>Tipo</label>
         <select id="ctr-tipo">
@@ -422,6 +423,32 @@ Aluguel SALA	2500	20/04/2026
     <div class="m-act">
       <button class="btn-p" onclick="saveDescontos()">Salvar</button>
       <button class="btn-o" onclick="closeDescModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="importOverlay">
+  <div class="modal-lg" style="position:relative;width:600px;max-width:90vw">
+    <button onclick="closeImportContrato()" title="Fechar" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:5px">&times;</button>
+    <h3>IMPORTAR CONTRATO VIA CLAUDE</h3>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:18px;line-height:1.65">Use seu Claude Max para ler o contrato escaneado e gerar os dados estruturados em segundos. Sem custo extra.</p>
+
+    <div style="background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--teal);margin-bottom:10px">PASSO 1 &middot; ABRIR O CLAUDE COM O PROMPT</div>
+      <p style="font-size:11px;color:rgba(247,249,255,0.65);line-height:1.6;margin-bottom:11px">Clique no botão abaixo. Vou copiar o prompt pra sua área de transferência e abrir o Claude numa nova aba.</p>
+      <button onclick="copyPromptAndOpenClaude()" class="btn-p" style="width:100%">&#128203; Copiar prompt + abrir Claude</button>
+      <p style="font-size:9.5px;color:var(--mu);margin-top:9px;line-height:1.55">Lá no Claude: <b style="color:var(--cream)">1)</b> anexa o PDF/imagem do contrato &nbsp;<b style="color:var(--cream)">2)</b> cola o prompt (Cmd+V) &nbsp;<b style="color:var(--cream)">3)</b> envia &nbsp;<b style="color:var(--cream)">4)</b> copia o JSON da resposta</p>
+    </div>
+
+    <div style="background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--teal);margin-bottom:10px">PASSO 2 &middot; COLAR O JSON AQUI</div>
+      <textarea id="import-json-input" placeholder='{"tipo":"entrada","servico":"Método A.P.E",...}' style="width:100%;height:140px;background:var(--sf);border:1px solid var(--br);color:var(--tx);font-family:'Monaco',monospace;font-size:11px;border-radius:7px;padding:10px;outline:none;resize:vertical"></textarea>
+      <p id="import-json-feedback" style="font-size:10px;margin-top:6px;color:var(--mu);min-height:14px"></p>
+    </div>
+
+    <div class="m-act-lg">
+      <button class="btn-o" onclick="closeImportContrato()">Cancelar</button>
+      <button class="btn-p" onclick="applyImportContrato()">&#10003; Aplicar ao formulario</button>
     </div>
   </div>
 </div>
@@ -1359,6 +1386,59 @@ function popularMesDeContratos(monthIdx){
   recalcMonthNoSave(monthIdx);
   return {entradas:ae,saidas:as};
 }
+// ══ IMPORTAR CONTRATO ESCANEADO (via Claude) ══
+var IMPORT_PROMPT_TEMPLATE = "Analise o contrato em anexo e extraia os dados em JSON puro (sem markdown, sem texto antes ou depois, apenas o objeto JSON). Use exatamente este formato:\n\n{\n  \"tipo\": \"entrada\" ou \"saida\",\n  \"servico\": \"Categoria do servico (ex: Metodo A.P.E, MV26 + Trafego Pago, Totem Indoor, Tráfego Pago, Growth Partner)\",\n  \"cliente\": \"Nome do cliente ou empresa/contato (ex: Fersary/Alexandre)\",\n  \"valorBase\": numero (valor bruto mensal em reais, sem R$ ou virgulas. Ex: 5408.19),\n  \"dia\": numero (dia do mes do pagamento, 1 a 31),\n  \"totalParcelas\": numero ou null se for recorrente sem fim,\n  \"mesInicio\": \"YYYY-MM (primeiro mes de cobranca)\",\n  \"descontos\": array de {\"desc\":\"nome\", \"val\":numero} ou [] se nao houver,\n  \"ajustes\": array de {\"apartirDaParcela\":N, \"valorBase\":novo_valor} ou [] se nao houver,\n  \"obs\": \"Observacoes importantes (forma de pagamento, condicoes especiais, parcelas adicionais)\"\n}\n\nRegras:\n- valorBase deve ser o valor BRUTO mensal (antes de descontos).\n- Se o contrato tem ajustes tipo 'a partir do mes 5, valor passa pra X', preencha em ajustes.\n- Se houver taxa de cartao, IOF, comissao ou outro desconto, inclua em descontos.\n- Use ponto como separador decimal (NUNCA virgula).\n- Retorne APENAS o objeto JSON, nada mais.";
+
+function openImportContrato(){
+  document.getElementById('import-json-input').value='';
+  document.getElementById('import-json-feedback').textContent='';
+  document.getElementById('import-json-feedback').style.color='var(--mu)';
+  document.getElementById('importOverlay').classList.add('open');
+}
+function closeImportContrato(){document.getElementById('importOverlay').classList.remove('open');}
+function copyPromptAndOpenClaude(){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(IMPORT_PROMPT_TEMPLATE).then(function(){
+      showToast('Prompt copiado ✓ Cole no Claude (Cmd+V)','var(--teal)');
+      window.open('https://claude.ai/new','_blank');
+    },function(){
+      prompt('Copie o prompt:',IMPORT_PROMPT_TEMPLATE);
+      window.open('https://claude.ai/new','_blank');
+    });
+  } else {
+    prompt('Copie o prompt:',IMPORT_PROMPT_TEMPLATE);
+    window.open('https://claude.ai/new','_blank');
+  }
+}
+function applyImportContrato(){
+  var raw=document.getElementById('import-json-input').value.trim();
+  var fb=document.getElementById('import-json-feedback');
+  if(!raw){fb.textContent='Cole o JSON retornado pelo Claude';fb.style.color='var(--red)';return;}
+  // Limpa cercas de markdown se vieram junto
+  raw=raw.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/\s*```\s*$/,'').trim();
+  var obj;
+  try{obj=JSON.parse(raw);}catch(e){fb.textContent='JSON invalido: '+e.message;fb.style.color='var(--red)';return;}
+  // Validacoes basicas
+  if(!obj.servico){fb.textContent='Campo "servico" faltando';fb.style.color='var(--red)';return;}
+  if(obj.tipo!=='entrada'&&obj.tipo!=='saida'){fb.textContent='Campo "tipo" deve ser "entrada" ou "saida"';fb.style.color='var(--red)';return;}
+  // Aplica nos campos do form principal
+  document.getElementById('ctr-tipo').value=obj.tipo;
+  document.getElementById('ctr-servico').value=obj.servico||'';
+  document.getElementById('ctr-cliente').value=obj.cliente||'';
+  document.getElementById('ctr-valor').value=obj.valorBase||'';
+  document.getElementById('ctr-dia').value=obj.dia||10;
+  document.getElementById('ctr-total').value=obj.totalParcelas||'';
+  document.getElementById('ctr-inicio').value=obj.mesInicio||'';
+  document.getElementById('ctr-obs').value=obj.obs||'';
+  document.getElementById('ctr-rev').value='1'; // marca pra revisar (precaução)
+  tmpDescs=Array.isArray(obj.descontos)?obj.descontos.filter(function(d){return d&&(d.desc||d.val);}):[];
+  tmpAjustes=Array.isArray(obj.ajustes)?obj.ajustes.filter(function(a){return a&&a.valorBase!==undefined;}):[];
+  renderCtrDescs();renderCtrAjustes();updateCtrPreview();
+  closeImportContrato();
+  showToast('Importado ✓ Revise os campos e clique em Salvar','var(--teal)');
+}
+document.getElementById('importOverlay').addEventListener('click',function(e){if(e.target===e.currentTarget)closeImportContrato();});
+
 // ══ RENOVACAO DE CONTRATOS ══
 var REN_KEY='abrii_renovacoes';
 var renovacoes={};
@@ -1554,6 +1634,7 @@ function openContratoModal(id){
   var c=id?CONTRATOS.find(function(x){return x.id===id;}):null;
   document.getElementById('ctr-modal-title').textContent=c?'EDITAR CONTRATO':'NOVO CONTRATO';
   document.getElementById('ctr-btn-del').style.display=c?'':'none';
+  var impBtn=document.getElementById('ctr-import-btn');if(impBtn)impBtn.style.display=c?'none':'';
   document.getElementById('ctr-tipo').value=c?c.tipo:'entrada';
   document.getElementById('ctr-ativo').value=c?(c.ativo?'1':'0'):'1';
   document.getElementById('ctr-servico').value=c?c.servico||'':'';
