@@ -434,10 +434,14 @@ Aluguel SALA	2500	20/04/2026
     <p style="font-size:11px;color:var(--mu);margin-bottom:18px;line-height:1.65">Use seu Claude Max para ler o contrato escaneado e gerar os dados estruturados em segundos. Sem custo extra.</p>
 
     <div style="background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:14px;margin-bottom:14px">
-      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--teal);margin-bottom:10px">PASSO 1 &middot; ABRIR O CLAUDE COM O PROMPT</div>
-      <p style="font-size:11px;color:rgba(247,249,255,0.65);line-height:1.6;margin-bottom:11px">Clique no botão abaixo. Vou copiar o prompt pra sua área de transferência e abrir o Claude numa nova aba.</p>
-      <button onclick="copyPromptAndOpenClaude()" class="btn-p" style="width:100%">&#128203; Copiar prompt + abrir Claude</button>
-      <p style="font-size:9.5px;color:var(--mu);margin-top:9px;line-height:1.55">Lá no Claude: <b style="color:var(--cream)">1)</b> anexa o PDF/imagem do contrato &nbsp;<b style="color:var(--cream)">2)</b> cola o prompt (Cmd+V) &nbsp;<b style="color:var(--cream)">3)</b> envia &nbsp;<b style="color:var(--cream)">4)</b> copia o JSON da resposta</p>
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--teal);margin-bottom:10px">PASSO 1 &middot; COPIAR O PROMPT</div>
+      <p style="font-size:11px;color:rgba(247,249,255,0.65);line-height:1.6;margin-bottom:11px">Clique pra copiar o prompt pra sua area de transferencia.</p>
+      <button onclick="copyImportPrompt()" class="btn-p" style="width:100%">&#128203; Copiar prompt</button>
+      <div style="margin-top:10px;padding:10px 12px;background:rgba(255,184,0,0.09);border:1px solid rgba(255,184,0,0.35);border-radius:7px;font-size:10.5px;color:#ffb800;line-height:1.6">
+        <b>&#9888; ATENCAO:</b> Use o Claude do navegador onde voce tem o <b>Claude Max ou Pro</b>. A versao gratuita falha com PDFs grandes ou retorna JSON em formato errado.
+      </div>
+      <button onclick="window.open('https://claude.ai/new','_blank')" style="margin-top:8px;background:transparent;border:1px solid var(--br);color:var(--mu);font-family:'Raleway',sans-serif;font-size:10px;border-radius:6px;padding:6px 10px;cursor:pointer;width:100%">&#8599; abrir Claude no navegador atual (so se for o navegador certo)</button>
+      <p style="font-size:9.5px;color:var(--mu);margin-top:11px;line-height:1.55">No Claude: <b style="color:var(--cream)">1)</b> anexe o PDF/imagem do contrato &nbsp;<b style="color:var(--cream)">2)</b> cole o prompt (Cmd+V) &nbsp;<b style="color:var(--cream)">3)</b> envie &nbsp;<b style="color:var(--cream)">4)</b> copie o JSON da resposta</p>
     </div>
 
     <div style="background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:14px;margin-bottom:14px">
@@ -1396,18 +1400,15 @@ function openImportContrato(){
   document.getElementById('importOverlay').classList.add('open');
 }
 function closeImportContrato(){document.getElementById('importOverlay').classList.remove('open');}
-function copyPromptAndOpenClaude(){
+function copyImportPrompt(){
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(IMPORT_PROMPT_TEMPLATE).then(function(){
       showToast('Prompt copiado ✓ Cole no Claude (Cmd+V)','var(--teal)');
-      window.open('https://claude.ai/new','_blank');
     },function(){
       prompt('Copie o prompt:',IMPORT_PROMPT_TEMPLATE);
-      window.open('https://claude.ai/new','_blank');
     });
   } else {
     prompt('Copie o prompt:',IMPORT_PROMPT_TEMPLATE);
-    window.open('https://claude.ai/new','_blank');
   }
 }
 function applyImportContrato(){
