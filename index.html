@@ -81,6 +81,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .notif-empty{padding:34px 18px;text-align:center;color:var(--mu);font-size:11px;line-height:1.7}
 .notif-empty-ic{font-size:26px;display:block;margin-bottom:8px;filter:grayscale(.2)}
 .readonly-mode .notif-check{display:none}
+.notif-foot{padding:10px 12px;border-top:1px solid var(--br);background:rgba(47,153,165,0.04)}
+.cob-btn-open{width:100%;background:rgba(47,170,106,0.12);border:1px solid rgba(47,170,106,0.4);color:var(--green);font-family:'Raleway',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:7px;padding:9px;cursor:pointer;transition:all .15s}
+.cob-btn-open:hover{background:rgba(47,170,106,0.2);border-color:var(--green)}
+.cob-card{background:var(--sf2);border:1px solid var(--br);border-radius:9px;padding:12px;margin:0 6px 9px}
+.cob-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:8px}
+.cob-cli{font-family:'Cinzel',serif;font-size:12px;color:var(--cream)}
+.cob-val{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0}
+.cob-msg{font-size:11px;color:rgba(247,249,255,0.6);line-height:1.55;background:var(--sf);border:1px solid var(--br);border-radius:7px;padding:9px 11px;margin-bottom:8px;white-space:pre-wrap}
+.cob-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-height:24px}
+.readonly-mode #cobOverlay,.readonly-mode .cob-btn-open{display:none}
 .mode-toggle{margin-left:12px;display:flex;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px;gap:2px}
 .mtb{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;color:rgba(247,249,255,0.32);transition:all .2s;border:none;background:none;font-family:'Raleway',sans-serif}.mtb.on{background:rgba(47,153,165,0.14);color:var(--teal)}.mtb:hover:not(.on){color:var(--tx)}
 .tabs{display:flex;gap:2px;margin-left:12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px}
@@ -277,6 +287,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
           <span class="notif-head-s" id="notifHeadSub">-</span>
         </div>
         <div class="notif-body" id="notifBody"></div>
+        <div class="notif-foot"><button class="cob-btn-open" onclick="openCobranca()">&#128172; Cobrar via WhatsApp</button></div>
       </div>
     </div>
     <div class="mode-toggle">
@@ -409,6 +420,14 @@ Aluguel SALA	2500	20/04/2026
         <input type="text" id="ctr-cliente" placeholder="Ex: Fersary/Alexandre, Railan">
       </div>
     </div>
+    <div class="mf-row">
+      <div class="mf-sm"><label>WhatsApp do cliente (p/ cobranca)</label>
+        <input type="text" id="ctr-whatsapp" placeholder="Ex: 47 99999-9999 (com DDD)">
+      </div>
+      <div class="mf-sm"><label>Cobrar este contrato?</label>
+        <select id="ctr-cobravel"><option value="1">Sim, entra na cobranca</option><option value="0">Nao cobrar</option></select>
+      </div>
+    </div>
     <div class="mf-row three">
       <div class="mf-sm"><label>Valor Bruto (R$)</label>
         <input type="number" id="ctr-valor" step="0.01" placeholder="5408.19">
@@ -500,6 +519,32 @@ Aluguel SALA	2500	20/04/2026
   </div>
 </div>
 
+<div class="overlay" id="cobOverlay">
+  <div class="modal-lg" style="position:relative;width:520px;max-width:92vw">
+    <button onclick="closeCobranca()" title="Fechar" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:5px">&times;</button>
+    <h3>COBRANCAS DO DIA</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span style="font-size:11px;color:var(--mu)" id="cobHeadSub">-</span>
+      <button onclick="openCobTpl()" style="background:none;border:1px solid var(--br);color:var(--gold);font-family:'Raleway',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:5px 10px;cursor:pointer">&#9998; Editar mensagem</button>
+    </div>
+    <div id="cobBody" style="max-height:60vh;overflow-y:auto;margin:0 -6px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="cobTplOverlay">
+  <div class="modal-lg" style="position:relative;width:540px;max-width:92vw">
+    <button onclick="closeCobTpl()" title="Fechar" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:5px">&times;</button>
+    <h3>MENSAGENS DE COBRANCA</h3>
+    <p style="font-size:10.5px;color:var(--mu);margin-bottom:14px;line-height:1.6">Use as variaveis: <b style="color:var(--cream)">{cliente}</b> (primeiro nome), <b style="color:var(--cream)">{servico}</b>, <b style="color:var(--cream)">{valor}</b>, <b style="color:var(--cream)">{data}</b>. Elas sao trocadas automaticamente.</p>
+    <div class="mf-sm" style="margin-bottom:14px"><label>Mensagem para VENCENDO HOJE</label><textarea id="cob-tpl-hoje" rows="4" style="width:100%;background:var(--sf2);border:1px solid var(--br);color:var(--tx);font-family:'Raleway',sans-serif;font-size:12px;border-radius:7px;padding:10px;outline:none;resize:vertical"></textarea></div>
+    <div class="mf-sm"><label>Mensagem para ATRASADO</label><textarea id="cob-tpl-atrasado" rows="5" style="width:100%;background:var(--sf2);border:1px solid var(--br);color:var(--tx);font-family:'Raleway',sans-serif;font-size:12px;border-radius:7px;padding:10px;outline:none;resize:vertical"></textarea></div>
+    <div class="m-act-lg">
+      <button class="btn-o" onclick="closeCobTpl()">Cancelar</button>
+      <button class="btn-p" onclick="saveCobTplFromModal()">&#10003; Salvar mensagens</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="renOverlay">
   <div class="modal-lg" style="position:relative">
     <button onclick="cancelarRenovacoes()" title="Fechar (nao apaga nada)" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:5px" onmouseover="this.style.color='var(--tx)';this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='var(--mu)';this.style.background='none'">&times;</button>
@@ -585,7 +630,7 @@ function fbPush(){
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
     var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
-    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
   },800);
 }
 function fbInitialSync(){
@@ -596,6 +641,7 @@ function fbInitialSync(){
       RAW=remote.raw;
       if(remote.contratos)CONTRATOS=remote.contratos;
       if(remote.renovacoes){renovacoes=remote.renovacoes;Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});saveRenovacoes();}
+      if(remote.cobTpl&&remote.cobTpl.hoje&&remote.cobTpl.atrasado){cobTpl=remote.cobTpl;try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -611,6 +657,8 @@ function fbInitialSync(){
       var d=s.val();if(!d||!d.raw)return;
       if(d.updatedAt&&d.updatedAt===FB_LAST_LOCAL_WRITE)return;
       RAW=d.raw;if(d.contratos)CONTRATOS=d.contratos;
+      if(d.renovacoes)renovacoes=d.renovacoes;
+      if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -1174,7 +1222,7 @@ function coletarPendencias(){
         if(it.status!=='pnd'&&it.status!=='atd')return;
         var ts=parseDate(it.date);
         if(!ts)return;
-        var rec={tipo:tipo,desc:it.desc||'(sem descricao)',val:parseFloat(it.val)||0,date:it.date,ts:ts,mi:mi,arr:key,idx:idx};
+        var rec={tipo:tipo,desc:it.desc||'(sem descricao)',val:parseFloat(it.val)||0,date:it.date,ts:ts,mi:mi,arr:key,idx:idx,contratoId:it.contratoId||null};
         if(ts<hj)r.atrasados.push(rec);
         else if(ts<hj+86400000)r.hoje.push(rec);
         else if(ts<lim7)r.futuros7.push(rec);
@@ -1250,6 +1298,136 @@ function marcarRecebidoNotif(mi,arr,idx){
   showToast((it.desc||'Lancamento')+' marcado como '+(arr==='entradas'?'recebido':'pago')+' ✓','var(--green)');
   renderNotifPanel();
 }
+
+// ══════════════════════════════════════════════
+// COBRANCA via WhatsApp (semi-automatica, 1 clique)
+// ══════════════════════════════════════════════
+var COB_KEY='abrii_cobranca_tpl';
+var COB_TPL_DEFAULT={
+  hoje:"Oi {cliente}, tudo bem? Passando pra lembrar que hoje vence o pagamento de {servico}, no valor de {valor}. Qualquer duvida estou a disposicao. Obrigado!",
+  atrasado:"Oi {cliente}, tudo bem? Identifiquei aqui que o pagamento de {servico}, no valor de {valor} (vencimento em {data}), ainda consta em aberto. Pode ter sido so um esquecimento. Consegue dar uma olhada hoje? Se ja tiver pago, me avisa que eu baixo aqui. Obrigado!"
+};
+var cobTpl=JSON.parse(JSON.stringify(COB_TPL_DEFAULT));
+try{var _ct=JSON.parse(localStorage.getItem(COB_KEY)||'null');if(_ct&&_ct.hoje&&_ct.atrasado)cobTpl=_ct;}catch(e){}
+function saveCobTpl(){try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}fbPush();}
+function soDigitos(s){return String(s||'').replace(/\D/g,'');}
+function normalizaWhats(num){
+  var d=soDigitos(num);
+  if(!d)return '';
+  if(d.length<=11&&d.indexOf('55')!==0)d='55'+d; // adiciona DDI Brasil se faltar
+  return d;
+}
+function primeiroNome(cliente){
+  if(!cliente)return 'tudo bem';
+  var c=String(cliente).replace(/^f[.,]\s*/i,'').replace(/\s*\(\d+\/\d+\)\s*$/,'').trim();
+  // se tiver "Empresa/Pessoa", usa a Pessoa (depois da barra)
+  if(c.indexOf('/')>=0){var ap=c.split('/')[1].trim();if(ap)c=ap;}
+  // se tiver "Empresa - Pessoa", usa a Pessoa (depois do hifen)
+  else if(/\s-\s/.test(c)){var ad=c.split(/\s-\s/).pop().trim();if(ad)c=ad;}
+  var nome=c.split(/\s+/)[0];
+  return nome||cliente;
+}
+function montarMsgCobranca(rec){
+  var c=rec.contratoId?CONTRATOS.find(function(x){return x.id===rec.contratoId;}):null;
+  var nomeCli=(c&&c.cliente)?c.cliente:(rec.desc||'');
+  var servico=(c&&c.servico)?c.servico.replace(/^f\.\s*/,'').trim():(rec.desc||'servico');
+  var tpl=rec.atrasado?cobTpl.atrasado:cobTpl.hoje;
+  return tpl
+    .replace(/{cliente}/g,primeiroNome(nomeCli))
+    .replace(/{servico}/g,servico)
+    .replace(/{valor}/g,fmt(rec.val))
+    .replace(/{data}/g,rec.date||'');
+}
+function coletarCobrancas(){
+  // Apenas ENTRADAS atrasadas + vencendo hoje, de contratos cobraveis com whatsapp
+  var p=coletarPendencias();
+  var lista=[];
+  function add(rec,atrasado){
+    if(rec.tipo!=='en')return;
+    var c=rec.contratoId?CONTRATOS.find(function(x){return x.id===rec.contratoId;}):null;
+    var whats=c?normalizaWhats(c.whatsapp):'';
+    var cobravel=c?(c.cobravel!==false):false;
+    lista.push({
+      rec:rec, atrasado:atrasado,
+      temWhats:!!whats, whats:whats,
+      cobravel:cobravel,
+      cliente:c?c.cliente:rec.desc,
+      msg:null
+    });
+  }
+  p.atrasados.forEach(function(r){add(r,true);});
+  p.hoje.forEach(function(r){add(r,false);});
+  // monta msg e filtra cobraveis com whatsapp
+  lista.forEach(function(it){it.rec.atrasado=it.atrasado;it.msg=montarMsgCobranca(it.rec);});
+  return lista;
+}
+function linkWhats(it){
+  var txt=encodeURIComponent(it.msg);
+  return 'https://wa.me/'+it.whats+'?text='+txt;
+}
+function abrirCobranca(idx){
+  var lista=window._cobListaAtual||[];
+  var it=lista[idx];
+  if(!it||!it.whats){showToast('Cliente sem WhatsApp cadastrado','var(--red)');return;}
+  window.open(linkWhats(it),'_blank');
+}
+function buildCobrancaPanel(){
+  var lista=coletarCobrancas();
+  window._cobListaAtual=lista;
+  var body=document.getElementById('cobBody');
+  if(!body)return;
+  var prontos=lista.filter(function(i){return i.cobravel&&i.temWhats;});
+  var semWhats=lista.filter(function(i){return i.cobravel&&!i.temWhats;});
+  document.getElementById('cobHeadSub').textContent=prontos.length+' pronta'+(prontos.length!==1?'s':'')+' pra cobrar';
+  var html='';
+  if(!lista.length){
+    body.innerHTML='<div class="notif-empty"><span class="notif-empty-ic">&#9989;</span>Nenhuma entrada atrasada ou vencendo hoje.<br>Nada pra cobrar!</div>';
+    return;
+  }
+  if(prontos.length){
+    html+='<div style="padding:8px 14px"><button class="btn-p" style="width:100%" onclick="cobrarTodos()">&#128172; Cobrar todos ('+prontos.length+') em sequencia</button></div>';
+  }
+  lista.forEach(function(it,idx){
+    var r=it.rec;
+    var tag=it.atrasado?'<span style="color:var(--red);font-size:8px;letter-spacing:1px">ATRASADO</span>':'<span style="color:#ffb800;font-size:8px;letter-spacing:1px">HOJE</span>';
+    var podeEnviar=it.cobravel&&it.temWhats;
+    var statusInfo='';
+    if(!it.cobravel)statusInfo='<span style="font-size:9px;color:var(--mu)">contrato marcado "nao cobrar"</span>';
+    else if(!it.temWhats)statusInfo='<span style="font-size:9px;color:var(--red)">&#9888; sem WhatsApp no contrato</span>';
+    var btn=podeEnviar?'<button class="notif-check" style="width:auto;padding:0 10px;border-color:rgba(47,170,106,0.4);color:var(--green)" title="Abrir WhatsApp com a mensagem" onclick="abrirCobranca('+idx+')">&#128172; Cobrar</button>':'';
+    html+='<div class="cob-card">'
+      +'<div class="cob-card-top"><div><span class="cob-cli">'+(it.cliente||'?').replace(/</g,'&lt;')+'</span> '+tag+'</div><div class="cob-val">'+fmt(r.val)+'</div></div>'
+      +'<div class="cob-msg">'+it.msg.replace(/</g,'&lt;')+'</div>'
+      +'<div class="cob-actions">'+statusInfo+btn+'</div>'
+      +'</div>';
+  });
+  body.innerHTML=html;
+}
+function cobrarTodos(){
+  var lista=(window._cobListaAtual||[]).filter(function(i){return i.cobravel&&i.temWhats;});
+  if(!lista.length)return;
+  if(!confirm('Vou abrir '+lista.length+' conversas do WhatsApp em sequencia, cada uma com a mensagem ja preenchida. Voce so precisa dar Enter em cada. Continuar?'))return;
+  lista.forEach(function(it,i){
+    setTimeout(function(){window.open(linkWhats(it),'_blank');}, i*1500);
+  });
+  showToast('Abrindo '+lista.length+' conversas. De Enter em cada uma.','var(--teal)');
+}
+function openCobranca(){buildCobrancaPanel();document.getElementById('cobOverlay').classList.add('open');}
+function closeCobranca(){document.getElementById('cobOverlay').classList.remove('open');}
+function openCobTpl(){
+  document.getElementById('cob-tpl-hoje').value=cobTpl.hoje;
+  document.getElementById('cob-tpl-atrasado').value=cobTpl.atrasado;
+  document.getElementById('cobTplOverlay').classList.add('open');
+}
+function closeCobTpl(){document.getElementById('cobTplOverlay').classList.remove('open');}
+function saveCobTplFromModal(){
+  cobTpl.hoje=document.getElementById('cob-tpl-hoje').value.trim()||COB_TPL_DEFAULT.hoje;
+  cobTpl.atrasado=document.getElementById('cob-tpl-atrasado').value.trim()||COB_TPL_DEFAULT.atrasado;
+  saveCobTpl();closeCobTpl();
+  if(document.getElementById('cobOverlay').classList.contains('open'))buildCobrancaPanel();
+  showToast('Mensagens de cobranca salvas ✓','var(--teal)');
+}
+
 // Browser notification (funciona com a aba aberta, mesmo em background)
 function pedirPermissaoNotif(){
   if(IS_READONLY)return;
@@ -1484,7 +1662,7 @@ function exportHTML(){
   setTimeout(function(){URL.revokeObjectURL(lk.href);document.body.removeChild(lk);},100);
 }
 function addNewMonthFromTx(){addNewMonth();switchTab('lancamentos');}
-function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
+function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);localStorage.removeItem(COB_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
 
 // ══════════════════════════════════════════════
 // CONTRATOS RECORRENTES
@@ -1560,7 +1738,7 @@ function popularMesDeContratos(monthIdx){
   return {entradas:ae,saidas:as};
 }
 // ══ IMPORTAR CONTRATO ESCANEADO (via Claude) ══
-var IMPORT_PROMPT_TEMPLATE = "Analise o contrato em anexo e extraia os dados em JSON puro (sem markdown, sem texto antes ou depois, apenas o objeto JSON). Use exatamente este formato:\n\n{\n  \"tipo\": \"entrada\" ou \"saida\",\n  \"servico\": \"Categoria do servico (ex: Metodo A.P.E, MV26 + Trafego Pago, Totem Indoor, Trafego Pago, Growth Partner, Agente de IA, Aluguel)\",\n  \"cliente\": \"Nome curto: EMPRESA/PessoaContato (ex: Fersary/Alexandre, 3A Estetica/Claudemir)\",\n  \"valorBase\": numero (valor bruto mensal em reais, sem R$ ou virgulas, ponto como decimal. Ex: 5408.19),\n  \"dia\": numero (dia do mes do pagamento ou vencimento, 1 a 31),\n  \"totalParcelas\": numero OU null - veja regras abaixo,\n  \"mesInicio\": \"YYYY-MM (primeiro mes de cobranca conforme o contrato)\",\n  \"descontos\": array de {\"desc\":\"nome\", \"val\":numero} ou [] se nao houver,\n  \"ajustes\": array de {\"apartirDaParcela\":N, \"valorBase\":novo_valor} ou [] se nao houver,\n  \"obs\": \"Observacoes importantes (forma de pagamento, fidelidade, condicoes especiais)\"\n}\n\nREGRAS IMPORTANTES PARA totalParcelas:\n- Se contrato diz 'X parcelas' ou 'X meses' fixos com fim definido: totalParcelas = X\n- Se diz 'fidelidade minima de X meses' + recorrencia depois: totalParcelas = X (use o periodo de fidelidade)\n- Se diz 'prazo minimo de X meses' + renovacao automatica: totalParcelas = X (use o minimo)\n- Se diz APENAS 'prazo indeterminado' ou 'renovacao mensal' sem nenhum prazo minimo: totalParcelas = null\n- Em caso de duvida, prefira colocar o numero (X meses) e detalhe no campo obs\n\nOUTRAS REGRAS:\n- valorBase deve ser o BRUTO mensal (antes de qualquer desconto).\n- Se valor varia (ex: 'mes 1 e 2: R$1000, depois R$500'): coloque o valor inicial em valorBase e use ajustes: [{\"apartirDaParcela\":3, \"valorBase\":500}].\n- Se houver taxa de cartao, IOF, comissao, repasse ou outro desconto que reduz o liquido: inclua em descontos.\n- Use ponto como separador decimal (NUNCA virgula). Ex: 1787.50.\n- mesInicio deve ser o mes em que comeca a cobranca (nao a data de assinatura). Se nao especificado, use o mes seguinte a data de assinatura.\n- Retorne APENAS o objeto JSON, nada antes nem depois.";
+var IMPORT_PROMPT_TEMPLATE = "Analise o contrato em anexo e extraia os dados em JSON puro (sem markdown, sem texto antes ou depois, apenas o objeto JSON). Use exatamente este formato:\n\n{\n  \"tipo\": \"entrada\" ou \"saida\",\n  \"servico\": \"Categoria do servico (ex: Metodo A.P.E, MV26 + Trafego Pago, Totem Indoor, Trafego Pago, Growth Partner, Agente de IA, Aluguel)\",\n  \"cliente\": \"Nome curto: EMPRESA/PessoaContato (ex: Fersary/Alexandre, 3A Estetica/Claudemir)\",\n  \"valorBase\": numero (valor bruto mensal em reais, sem R$ ou virgulas, ponto como decimal. Ex: 5408.19),\n  \"dia\": numero (dia do mes do pagamento ou vencimento, 1 a 31),\n  \"totalParcelas\": numero OU null - veja regras abaixo,\n  \"mesInicio\": \"YYYY-MM (primeiro mes de cobranca conforme o contrato)\",\n  \"whatsapp\": \"telefone/WhatsApp do cliente se constar no contrato, so digitos com DDD. Ex: 47999999999. Se nao houver, deixe string vazia\",\n  \"descontos\": array de {\"desc\":\"nome\", \"val\":numero} ou [] se nao houver,\n  \"ajustes\": array de {\"apartirDaParcela\":N, \"valorBase\":novo_valor} ou [] se nao houver,\n  \"obs\": \"Observacoes importantes (forma de pagamento, fidelidade, condicoes especiais)\"\n}\n\nREGRAS IMPORTANTES PARA totalParcelas:\n- Se contrato diz 'X parcelas' ou 'X meses' fixos com fim definido: totalParcelas = X\n- Se diz 'fidelidade minima de X meses' + recorrencia depois: totalParcelas = X (use o periodo de fidelidade)\n- Se diz 'prazo minimo de X meses' + renovacao automatica: totalParcelas = X (use o minimo)\n- Se diz APENAS 'prazo indeterminado' ou 'renovacao mensal' sem nenhum prazo minimo: totalParcelas = null\n- Em caso de duvida, prefira colocar o numero (X meses) e detalhe no campo obs\n\nOUTRAS REGRAS:\n- valorBase deve ser o BRUTO mensal (antes de qualquer desconto).\n- Se valor varia (ex: 'mes 1 e 2: R$1000, depois R$500'): coloque o valor inicial em valorBase e use ajustes: [{\"apartirDaParcela\":3, \"valorBase\":500}].\n- Se houver taxa de cartao, IOF, comissao, repasse ou outro desconto que reduz o liquido: inclua em descontos.\n- Use ponto como separador decimal (NUNCA virgula). Ex: 1787.50.\n- mesInicio deve ser o mes em que comeca a cobranca (nao a data de assinatura). Se nao especificado, use o mes seguinte a data de assinatura.\n- Retorne APENAS o objeto JSON, nada antes nem depois.";
 
 function openImportContrato(){
   document.getElementById('import-json-input').value='';
@@ -1599,6 +1777,8 @@ function applyImportContrato(){
   document.getElementById('ctr-dia').value=obj.dia||10;
   document.getElementById('ctr-total').value=obj.totalParcelas||'';
   document.getElementById('ctr-inicio').value=obj.mesInicio||'';
+  document.getElementById('ctr-whatsapp').value=obj.whatsapp||'';
+  document.getElementById('ctr-cobravel').value='1';
   document.getElementById('ctr-obs').value=obj.obs||'';
   document.getElementById('ctr-rev').value='1'; // marca pra revisar (precaução)
   tmpDescs=Array.isArray(obj.descontos)?obj.descontos.filter(function(d){return d&&(d.desc||d.val);}):[];
@@ -1815,6 +1995,8 @@ function openContratoModal(id){
   var now=new Date();var defIni=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   document.getElementById('ctr-inicio').value=c?c.mesInicio:defIni;
   document.getElementById('ctr-rev').value=c?(c.flagRevisar?'1':'0'):'0';
+  document.getElementById('ctr-whatsapp').value=c?(c.whatsapp||''):'';
+  document.getElementById('ctr-cobravel').value=c?((c.cobravel===false)?'0':'1'):'1';
   document.getElementById('ctr-obs').value=c?c.obs||'':'';
   tmpDescs=c&&c.descontos?JSON.parse(JSON.stringify(c.descontos)):[];
   tmpAjustes=c&&c.ajustes?JSON.parse(JSON.stringify(c.ajustes)):[];
@@ -1889,6 +2071,8 @@ function saveContrato(){
     mesInicio:inicio,
     ativo:document.getElementById('ctr-ativo').value==='1',
     flagRevisar:document.getElementById('ctr-rev').value==='1',
+    whatsapp:document.getElementById('ctr-whatsapp').value.trim(),
+    cobravel:document.getElementById('ctr-cobravel').value==='1',
     obs:document.getElementById('ctr-obs').value.trim(),
     descontos:tmpDescs.filter(function(d){return d.desc||d.val;}),
     ajustes:tmpAjustes.filter(function(a){return a.valorBase!==undefined;})
