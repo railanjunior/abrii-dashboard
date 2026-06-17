@@ -51,7 +51,37 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .tb-t{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--mu)}.tb-t b{color:var(--tx)}
 .lv{display:flex;align-items:center;gap:5px}.lv-d{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:bl 2s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}.lv-t{font-size:9px;letter-spacing:2px;color:var(--teal);text-transform:uppercase}
-.mode-toggle{margin-left:auto;display:flex;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px;gap:2px}
+.notif-wrap{margin-left:auto;position:relative}
+.notif-bell{position:relative;background:var(--sf);border:1px solid var(--br);border-radius:8px;width:38px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0}
+.notif-bell:hover{border-color:rgba(47,153,165,0.4);background:rgba(47,153,165,0.08)}
+.notif-ico{font-size:15px;filter:grayscale(.3);line-height:1}
+.notif-bell.has-alert .notif-ico{animation:bellShake 1.2s ease-in-out infinite}
+@keyframes bellShake{0%,100%{transform:rotate(0)}8%{transform:rotate(14deg)}16%{transform:rotate(-12deg)}24%{transform:rotate(9deg)}32%{transform:rotate(-6deg)}40%{transform:rotate(0)}}
+.notif-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;background:var(--red);color:#fff;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #000,0 0 10px rgba(224,85,85,.6);line-height:1}
+.notif-badge.zero{background:var(--green);box-shadow:0 0 0 2px #000}
+.notif-panel{display:none;position:fixed;top:50px;right:18px;z-index:200;width:360px;max-width:calc(100vw - 36px);max-height:480px;background:var(--sf);border:1px solid var(--br);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden}
+.notif-panel.open{display:block;animation:fu .25s ease both}
+.notif-head{padding:13px 16px;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;background:rgba(47,153,165,0.04)}
+.notif-head-t{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;color:var(--cream)}
+.notif-head-s{font-size:9px;color:var(--mu);letter-spacing:1px}
+.notif-body{max-height:420px;overflow-y:auto;padding:6px}
+.notif-sec{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);padding:9px 12px 5px}
+.notif-sec.atd{color:var(--red)}.notif-sec.hoje{color:#ffb800}.notif-sec.fut{color:var(--teal)}
+.notif-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:8px;transition:background .15s}
+.notif-item:hover{background:rgba(47,153,165,0.06)}
+.notif-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.notif-dot.en{background:var(--teal)}.notif-dot.sa{background:var(--red)}
+.notif-it-info{flex:1;min-width:0}
+.notif-it-desc{font-size:11px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-it-meta{font-size:9px;color:var(--mu);margin-top:1px}
+.notif-it-val{font-family:'Cinzel',serif;font-size:11px;font-weight:700;flex-shrink:0}
+.notif-it-val.en{color:var(--teal)}.notif-it-val.sa{color:var(--red)}
+.notif-check{flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid var(--br);background:var(--sf2);color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;padding:0}
+.notif-check:hover{border-color:var(--green);color:var(--green);background:rgba(47,170,106,0.1)}
+.notif-empty{padding:34px 18px;text-align:center;color:var(--mu);font-size:11px;line-height:1.7}
+.notif-empty-ic{font-size:26px;display:block;margin-bottom:8px;filter:grayscale(.2)}
+.readonly-mode .notif-check{display:none}
+.mode-toggle{margin-left:12px;display:flex;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px;gap:2px}
 .mtb{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;color:rgba(247,249,255,0.32);transition:all .2s;border:none;background:none;font-family:'Raleway',sans-serif}.mtb.on{background:rgba(47,153,165,0.14);color:var(--teal)}.mtb:hover:not(.on){color:var(--tx)}
 .tabs{display:flex;gap:2px;margin-left:12px;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:3px}
 .tab{padding:5px 13px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:rgba(247,249,255,0.32);transition:all .2s;border:none;background:none;font-family:'Raleway',sans-serif}.tab.on{background:rgba(47,153,165,0.14);color:var(--teal)}.tab:hover:not(.on){color:var(--tx)}
@@ -236,6 +266,19 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
   <header class="topbar">
     <div class="tb-t">ABRii / <b id="tb-period">Visao Geral</b></div>
     <div class="lv"><div class="lv-d"></div><span class="lv-t">Dados Reais</span></div>
+    <div class="notif-wrap" id="notifWrap">
+      <button class="notif-bell" id="notifBell" onclick="toggleNotifPanel(event)" title="Pendencias">
+        <span class="notif-ico">&#128276;</span>
+        <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+      </button>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-head">
+          <span class="notif-head-t">PENDENCIAS</span>
+          <span class="notif-head-s" id="notifHeadSub">-</span>
+        </div>
+        <div class="notif-body" id="notifBody"></div>
+      </div>
+    </div>
     <div class="mode-toggle">
       <button class="mtb on" id="btn-edit" onclick="setMode('edit')">✐ Editar</button>
       <button class="mtb" id="btn-view" onclick="setMode('view')">◉ Visualizar</button>
@@ -670,6 +713,7 @@ function updateKPIs(){
   document.getElementById('sb-r').textContent=fmt(res);
   document.getElementById('sb-r').style.color=res>=0?'var(--gold)':'var(--red)';
   updateMeta(activeLancMonth);
+  if(typeof updateNotif==='function')updateNotif();
 }
 
 function buildTimeline(){
@@ -1112,6 +1156,131 @@ function parseDate(d){
   if(p.length===3) return new Date(p[2],p[1]-1,p[0]).getTime();
   return 0;
 }
+
+// ══════════════════════════════════════════════
+// NOTIFICACOES IN-APP (sino) — pendencias do dia + atrasados
+// ══════════════════════════════════════════════
+var notifTimer=null, notifLastSig='';
+function hojeMidnight(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();}
+function coletarPendencias(){
+  // Retorna {atrasados:[], hoje:[], futuros7:[]} com itens {tipo,desc,val,date,ts,mi,arr,idx}
+  var hj=hojeMidnight();
+  var lim7=hj+7*86400000;
+  var r={atrasados:[],hoje:[],futuros7:[]};
+  RAW.forEach(function(m,mi){
+    [['entradas','en'],['saidas','sa']].forEach(function(pair){
+      var key=pair[0], tipo=pair[1];
+      (m[key]||[]).forEach(function(it,idx){
+        if(it.status!=='pnd'&&it.status!=='atd')return;
+        var ts=parseDate(it.date);
+        if(!ts)return;
+        var rec={tipo:tipo,desc:it.desc||'(sem descricao)',val:parseFloat(it.val)||0,date:it.date,ts:ts,mi:mi,arr:key,idx:idx};
+        if(ts<hj)r.atrasados.push(rec);
+        else if(ts<hj+86400000)r.hoje.push(rec);
+        else if(ts<lim7)r.futuros7.push(rec);
+      });
+    });
+  });
+  var byTs=function(a,b){return a.ts-b.ts;};
+  r.atrasados.sort(byTs);r.hoje.sort(byTs);r.futuros7.sort(byTs);
+  return r;
+}
+function updateNotif(){
+  if(typeof document==='undefined')return;
+  var p=coletarPendencias();
+  var urgentes=p.atrasados.length+p.hoje.length; // o que conta no badge vermelho
+  var badge=document.getElementById('notifBadge');
+  var bell=document.getElementById('notifBell');
+  if(!badge||!bell)return;
+  if(urgentes>0){
+    badge.textContent=urgentes>99?'99+':String(urgentes);
+    badge.style.display='flex';badge.classList.remove('zero');
+    bell.classList.add('has-alert');
+  } else {
+    badge.style.display='none';
+    bell.classList.remove('has-alert');
+  }
+  // Re-renderiza painel se aberto
+  var panel=document.getElementById('notifPanel');
+  if(panel&&panel.classList.contains('open'))renderNotifPanel(p);
+  // Assinatura pra detectar mudanca (dispara browser notification ao mudar)
+  notifLastSig=p.atrasados.length+'|'+p.hoje.length;
+}
+function renderNotifPanel(p){
+  if(!p)p=coletarPendencias();
+  var body=document.getElementById('notifBody');
+  var sub=document.getElementById('notifHeadSub');
+  if(!body)return;
+  var totalUrg=p.atrasados.length+p.hoje.length;
+  sub.textContent=totalUrg>0?(totalUrg+' urgente'+(totalUrg>1?'s':'')):'tudo em dia';
+  var html='';
+  var fmtV=function(rec){return (rec.tipo==='en'?'+':'-')+fmt(rec.val);};
+  var linha=function(rec){
+    var meta=(rec.tipo==='en'?'Receber':'Pagar')+' &middot; '+rec.date+' &middot; '+RAW[rec.mi].label;
+    var btn=IS_READONLY?'':'<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>';
+    return '<div class="notif-item"><div class="notif-dot '+rec.tipo+'"></div>'
+      +'<div class="notif-it-info"><div class="notif-it-desc">'+rec.desc.replace(/</g,'&lt;')+'</div><div class="notif-it-meta">'+meta+'</div></div>'
+      +'<div class="notif-it-val '+rec.tipo+'">'+fmtV(rec)+'</div>'+btn+'</div>';
+  };
+  if(p.atrasados.length){html+='<div class="notif-sec atd">&#9888; Atrasados ('+p.atrasados.length+')</div>';p.atrasados.forEach(function(r){html+=linha(r);});}
+  if(p.hoje.length){html+='<div class="notif-sec hoje">&#128197; Hoje ('+p.hoje.length+')</div>';p.hoje.forEach(function(r){html+=linha(r);});}
+  if(p.futuros7.length){html+='<div class="notif-sec fut">Proximos 7 dias ('+p.futuros7.length+')</div>';p.futuros7.forEach(function(r){html+=linha(r);});}
+  if(!html)html='<div class="notif-empty"><span class="notif-empty-ic">&#9989;</span>Nenhuma pendencia.<br>Tudo recebido e pago em dia!</div>';
+  body.innerHTML=html;
+}
+function toggleNotifPanel(ev){
+  if(ev)ev.stopPropagation();
+  var panel=document.getElementById('notifPanel');
+  if(!panel)return;
+  if(panel.classList.contains('open')){panel.classList.remove('open');}
+  else{renderNotifPanel();panel.classList.add('open');}
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('notifWrap');
+  var panel=document.getElementById('notifPanel');
+  if(wrap&&panel&&panel.classList.contains('open')&&!wrap.contains(e.target))panel.classList.remove('open');
+});
+function marcarRecebidoNotif(mi,arr,idx){
+  var it=RAW[mi]&&RAW[mi][arr]&&RAW[mi][arr][idx];
+  if(!it)return;
+  it.status='rcv';
+  recalcMonth(mi);
+  updateKPIs();updateCharts();autoSave();
+  if(activeLancMonth===mi&&document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
+  showToast((it.desc||'Lancamento')+' marcado como '+(arr==='entradas'?'recebido':'pago')+' ✓','var(--green)');
+  renderNotifPanel();
+}
+// Browser notification (funciona com a aba aberta, mesmo em background)
+function pedirPermissaoNotif(){
+  if(IS_READONLY)return;
+  if(typeof Notification==='undefined')return;
+  if(Notification.permission==='default'){Notification.requestPermission();}
+}
+function dispararBrowserNotif(){
+  if(IS_READONLY)return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  var p=coletarPendencias();
+  var nA=p.atrasados.length, nH=p.hoje.length;
+  if(nA+nH===0)return;
+  var totA=p.atrasados.reduce(function(a,b){return a+b.val;},0);
+  var totH=p.hoje.reduce(function(a,b){return a+b.val;},0);
+  var partes=[];
+  if(nH)partes.push(nH+' pra hoje ('+fmt(totH)+')');
+  if(nA)partes.push(nA+' atrasado'+(nA>1?'s':'')+' ('+fmt(totA)+')');
+  try{
+    var n=new Notification('ABRii Financeiro — pendencias',{body:partes.join(' | ')+'\nClique para abrir o dashboard.',tag:'abrii-pend',renotify:true});
+    n.onclick=function(){window.focus();var b=document.getElementById('notifBell');if(b)b.click();n.close();};
+  }catch(e){}
+}
+// Lembrete recorrente a cada 3h enquanto houver pendencia urgente
+function iniciarLembreteRecorrente(){
+  if(notifTimer)clearInterval(notifTimer);
+  notifTimer=setInterval(function(){
+    var p=coletarPendencias();
+    if(p.atrasados.length+p.hoje.length>0)dispararBrowserNotif();
+  }, 3*60*60*1000); // 3 horas
+}
+
 function sortByDate(arr){
   return arr.slice().sort(function(a,b){
     var da=parseDate(a.date), db=parseDate(b.date);
@@ -1835,6 +2004,12 @@ if(IS_READONLY){
   document.body.prepend(_b);
 }
 fbInitialSync();
+// ── Notificacoes in-app ──
+updateNotif();
+pedirPermissaoNotif();
+iniciarLembreteRecorrente();
+// Reverifica a cada 30min se virou o dia / mudou algo (atualiza badge)
+setInterval(function(){updateNotif();}, 30*60*1000);
 </script>
 
 
