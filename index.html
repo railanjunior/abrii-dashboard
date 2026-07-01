@@ -630,7 +630,7 @@ function fbPush(){
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
     var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
-    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
   },800);
 }
 function fbInitialSync(){
@@ -642,6 +642,7 @@ function fbInitialSync(){
       if(remote.contratos)CONTRATOS=remote.contratos;
       if(remote.renovacoes){renovacoes=remote.renovacoes;Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});saveRenovacoes();}
       if(remote.cobTpl&&remote.cobTpl.hoje&&remote.cobTpl.atrasado){cobTpl=remote.cobTpl;try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}}
+      if(remote.suprimidos){contratosSuprimidos=remote.suprimidos;saveSuprimidos();}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -659,6 +660,7 @@ function fbInitialSync(){
       RAW=d.raw;if(d.contratos)CONTRATOS=d.contratos;
       if(d.renovacoes)renovacoes=d.renovacoes;
       if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
+      if(d.suprimidos)contratosSuprimidos=d.suprimidos;
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -1029,6 +1031,8 @@ function delRow(type,idx){
   }
   pushUndo('deleteRow',{monthIdx:activeLancMonth,type:type==='en'?'entradas':'saidas',rowIdx:idx,item:JSON.parse(JSON.stringify(item))});
   arr.splice(idx,1);
+  // Se era auto-gerado de contrato, registra supressao pra nao voltar na repopulacao
+  if(item&&item.contratoId){contratosSuprimidos[RAW[activeLancMonth].key+'|'+item.contratoId]=true;saveSuprimidos();}
   selecaoLanc={en:{},sa:{}};
   recalcMonth(activeLancMonth);renderEntryForm();updateKPIs();updateCharts();autoSave();updateSelecaoBox();
 }
@@ -1596,6 +1600,8 @@ function undo(){
   var last = undoStack.pop();
   if(last.action === 'deleteRow'){
     RAW[last.data.monthIdx][last.data.type].splice(last.data.rowIdx, 0, last.data.item);
+    // Se era de contrato, remove a supressao (usuario mudou de ideia)
+    if(last.data.item&&last.data.item.contratoId){delete contratosSuprimidos[RAW[last.data.monthIdx].key+'|'+last.data.item.contratoId];saveSuprimidos();}
     recalcMonth(last.data.monthIdx);
     if(activeLancMonth === last.data.monthIdx) renderEntryForm();
     updateKPIs(); updateCharts(); autoSave();
@@ -1662,7 +1668,7 @@ function exportHTML(){
   setTimeout(function(){URL.revokeObjectURL(lk.href);document.body.removeChild(lk);},100);
 }
 function addNewMonthFromTx(){addNewMonth();switchTab('lancamentos');}
-function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);localStorage.removeItem(COB_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
+function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);localStorage.removeItem(COB_KEY);localStorage.removeItem(SUP_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
 
 // ══════════════════════════════════════════════
 // CONTRATOS RECORRENTES
@@ -1732,8 +1738,9 @@ function popularMesDeContratos(monthIdx){
   m.entradas.forEach(function(e){if(e.contratoId)temE[e.contratoId]=true;});
   m.saidas.forEach(function(s){if(s.contratoId)temS[s.contratoId]=true;});
   var ae=0,as=0;
-  g.entradas.forEach(function(e){if(!temE[e.contratoId]){m.entradas.push(e);ae++;}});
-  g.saidas.forEach(function(s){if(!temS[s.contratoId]){m.saidas.push(s);as++;}});
+  var sup=(typeof contratosSuprimidos!=='undefined')?contratosSuprimidos:{};
+  g.entradas.forEach(function(e){if(!temE[e.contratoId]&&!sup[m.key+'|'+e.contratoId]){m.entradas.push(e);ae++;}});
+  g.saidas.forEach(function(s){if(!temS[s.contratoId]&&!sup[m.key+'|'+s.contratoId]){m.saidas.push(s);as++;}});
   recalcMonthNoSave(monthIdx);
   return {entradas:ae,saidas:as};
 }
@@ -1797,6 +1804,12 @@ try{renovacoes=JSON.parse(localStorage.getItem(REN_KEY)||'{}');}catch(e){}
 Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});
 var renCtx={refKey:null,pendentes:[],decisoes:{},onComplete:null};
 function saveRenovacoes(){try{localStorage.setItem(REN_KEY,JSON.stringify(renovacoes));}catch(e){}}
+// ══ Supressao: lancamentos auto-gerados que o usuario apagou de proposito ══
+// Chave = monthKey + '|' + contratoId. Impede que a repopulacao recrie o item.
+var SUP_KEY='abrii_contratos_suprimidos';
+var contratosSuprimidos={};
+try{contratosSuprimidos=JSON.parse(localStorage.getItem(SUP_KEY)||'{}');}catch(e){}
+function saveSuprimidos(){try{localStorage.setItem(SUP_KEY,JSON.stringify(contratosSuprimidos));}catch(e){}}
 function mesAnterior(key){var p=keyToIdx(key);var nm=p[1]===1?12:p[1]-1;var ny=p[1]===1?p[0]-1:p[0];return ny+'-'+String(nm).padStart(2,'0');}
 function verificarRenovacoesPendentes(refKey){
   // Contratos com totalParcelas que tiveram a ultima parcela em mes <= mes anterior ao refKey
