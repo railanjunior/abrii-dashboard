@@ -632,7 +632,7 @@ function fbPush(){
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
     var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
-    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),notifDisp:(typeof notifDispensadas!=='undefined'?notifDispensadas:{}),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
   },800);
 }
 function fbInitialSync(){
@@ -645,6 +645,7 @@ function fbInitialSync(){
       if(remote.renovacoes){renovacoes=remote.renovacoes;Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});saveRenovacoes();}
       if(remote.cobTpl&&remote.cobTpl.hoje&&remote.cobTpl.atrasado){cobTpl=remote.cobTpl;try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}}
       if(remote.suprimidos){contratosSuprimidos=remote.suprimidos;saveSuprimidos();}
+      if(remote.notifDisp){notifDispensadas=remote.notifDisp;try{localStorage.setItem(NOTIF_DISM_KEY,JSON.stringify(notifDispensadas));}catch(e){}}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -663,6 +664,7 @@ function fbInitialSync(){
       if(d.renovacoes)renovacoes=d.renovacoes;
       if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
       if(d.suprimidos)contratosSuprimidos=d.suprimidos;
+      if(d.notifDisp)notifDispensadas=d.notifDisp;
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
@@ -1215,6 +1217,13 @@ function parseDate(d){
 // NOTIFICACOES IN-APP (sino) — pendencias do dia + atrasados
 // ══════════════════════════════════════════════
 var notifTimer=null, notifLastSig='';
+// Notificacoes dispensadas (aviso removido, lancamento permanece). Chave = assinatura do item.
+var NOTIF_DISM_KEY='abrii_notif_dispensadas';
+var notifDispensadas={};
+try{notifDispensadas=JSON.parse(localStorage.getItem(NOTIF_DISM_KEY)||'{}');}catch(e){}
+function saveNotifDisp(){try{localStorage.setItem(NOTIF_DISM_KEY,JSON.stringify(notifDispensadas));}catch(e){}fbPush();}
+function sigNotif(rec){return (RAW[rec.mi]?RAW[rec.mi].key:'?')+'|'+rec.arr+'|'+(rec.desc||'')+'|'+(rec.date||'')+'|'+(rec.val||0);}
+function ehDispensada(rec){return !!notifDispensadas[sigNotif(rec)];}
 function hojeMidnight(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();}
 function coletarPendencias(){
   // Retorna {atrasados:[], hoje:[], futuros7:[]} com itens {tipo,desc,val,date,ts,mi,arr,idx}
@@ -1239,9 +1248,16 @@ function coletarPendencias(){
   r.atrasados.sort(byTs);r.hoje.sort(byTs);r.futuros7.sort(byTs);
   return r;
 }
+function filtrarDispensadas(p){
+  return {
+    atrasados:p.atrasados.filter(function(r){return !ehDispensada(r);}),
+    hoje:p.hoje.filter(function(r){return !ehDispensada(r);}),
+    futuros7:p.futuros7.filter(function(r){return !ehDispensada(r);})
+  };
+}
 function updateNotif(){
   if(typeof document==='undefined')return;
-  var p=coletarPendencias();
+  var p=filtrarDispensadas(coletarPendencias());
   var urgentes=p.atrasados.length+p.hoje.length; // o que conta no badge vermelho
   var badge=document.getElementById('notifBadge');
   var bell=document.getElementById('notifBell');
@@ -1262,6 +1278,7 @@ function updateNotif(){
 }
 function renderNotifPanel(p){
   if(!p)p=coletarPendencias();
+  p=filtrarDispensadas(p);
   var body=document.getElementById('notifBody');
   var sub=document.getElementById('notifHeadSub');
   if(!body)return;
@@ -1274,7 +1291,7 @@ function renderNotifPanel(p){
     var btns='';
     if(!IS_READONLY){
       btns='<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>'
-        +'<button class="notif-del" title="Apagar lancamento" onclick="apagarNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#215;</button>';
+        +'<button class="notif-del" title="Dispensar aviso (nao apaga o lancamento)" onclick="dispensarNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#215;</button>';
     }
     return '<div class="notif-item"><div class="notif-dot '+rec.tipo+'"></div>'
       +'<div class="notif-it-info"><div class="notif-it-desc">'+rec.desc.replace(/</g,'&lt;')+'</div><div class="notif-it-meta">'+meta+'</div></div>'
@@ -1308,18 +1325,16 @@ function marcarRecebidoNotif(mi,arr,idx){
   showToast((it.desc||'Lancamento')+' marcado como '+(arr==='entradas'?'recebido':'pago')+' ✓','var(--green)');
   renderNotifPanel();
 }
-function apagarNotif(mi,arr,idx){
+function dispensarNotif(mi,arr,idx){
+  // Remove SO o aviso, mantendo o lancamento intacto em Lancamentos
   var it=RAW[mi]&&RAW[mi][arr]&&RAW[mi][arr][idx];
   if(!it)return;
-  if(!confirm('Apagar lancamento "'+(it.desc||'sem descricao')+'" ('+fmt(parseFloat(it.val)||0)+')?\n\nCmd+Z para desfazer.'))return;
-  pushUndo('deleteRow',{monthIdx:mi,type:arr,rowIdx:idx,item:JSON.parse(JSON.stringify(it))});
-  RAW[mi][arr].splice(idx,1);
-  // Se era de contrato, suprime pra nao voltar na repopulacao
-  if(it.contratoId){contratosSuprimidos[RAW[mi].key+'|'+it.contratoId]=true;saveSuprimidos();}
-  recalcMonth(mi);updateKPIs();updateCharts();autoSave();
-  if(activeLancMonth===mi&&document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
-  showToast((it.desc||'Lancamento')+' apagado. Cmd+Z para desfazer.','var(--gold)');
+  var rec={mi:mi,arr:arr,desc:it.desc||'',date:it.date||'',val:parseFloat(it.val)||0};
+  notifDispensadas[sigNotif(rec)]=true;
+  saveNotifDisp();
+  updateNotif();
   renderNotifPanel();
+  showToast('Aviso dispensado (lancamento mantido)','var(--mu)');
 }
 
 // ══════════════════════════════════════════════
@@ -1460,7 +1475,7 @@ function pedirPermissaoNotif(){
 function dispararBrowserNotif(){
   if(IS_READONLY)return;
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
-  var p=coletarPendencias();
+  var p=filtrarDispensadas(coletarPendencias());
   var nA=p.atrasados.length, nH=p.hoje.length;
   if(nA+nH===0)return;
   var totA=p.atrasados.reduce(function(a,b){return a+b.val;},0);
@@ -1477,7 +1492,7 @@ function dispararBrowserNotif(){
 function iniciarLembreteRecorrente(){
   if(notifTimer)clearInterval(notifTimer);
   notifTimer=setInterval(function(){
-    var p=coletarPendencias();
+    var p=filtrarDispensadas(coletarPendencias());
     if(p.atrasados.length+p.hoje.length>0)dispararBrowserNotif();
   }, 3*60*60*1000); // 3 horas
 }
@@ -1687,7 +1702,7 @@ function exportHTML(){
   setTimeout(function(){URL.revokeObjectURL(lk.href);document.body.removeChild(lk);},100);
 }
 function addNewMonthFromTx(){addNewMonth();switchTab('lancamentos');}
-function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);localStorage.removeItem(COB_KEY);localStorage.removeItem(SUP_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
+function clearStorageData(){if(confirm('Resetar todos os dados? Esta acao nao pode ser desfeita.\n\nIncluindo contratos cadastrados, lancamentos, renovacoes e meta.')){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(CTR_KEY);localStorage.removeItem(META_KEY);localStorage.removeItem(REN_KEY);localStorage.removeItem(COB_KEY);localStorage.removeItem(SUP_KEY);localStorage.removeItem(NOTIF_DISM_KEY);sessionStorage.removeItem(STORAGE_KEY);sessionStorage.removeItem(CTR_KEY);sessionStorage.removeItem(META_KEY);sessionStorage.removeItem(REN_KEY);location.reload();}}
 
 // ══════════════════════════════════════════════
 // CONTRATOS RECORRENTES
