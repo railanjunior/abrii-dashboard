@@ -78,6 +78,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .notif-it-val.en{color:var(--teal)}.notif-it-val.sa{color:var(--red)}
 .notif-check{flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid var(--br);background:var(--sf2);color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;padding:0}
 .notif-check:hover{border-color:var(--green);color:var(--green);background:rgba(47,170,106,0.1)}
+.notif-del{flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1px solid var(--br);background:var(--sf2);color:rgba(224,85,85,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s;padding:0;margin-left:5px}
+.notif-del:hover{border-color:var(--red);color:var(--red);background:rgba(224,85,85,0.1)}
 .notif-empty{padding:34px 18px;text-align:center;color:var(--mu);font-size:11px;line-height:1.7}
 .notif-empty-ic{font-size:26px;display:block;margin-bottom:8px;filter:grayscale(.2)}
 .readonly-mode .notif-check{display:none}
@@ -1269,10 +1271,14 @@ function renderNotifPanel(p){
   var fmtV=function(rec){return (rec.tipo==='en'?'+':'-')+fmt(rec.val);};
   var linha=function(rec){
     var meta=(rec.tipo==='en'?'Receber':'Pagar')+' &middot; '+rec.date+' &middot; '+RAW[rec.mi].label;
-    var btn=IS_READONLY?'':'<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>';
+    var btns='';
+    if(!IS_READONLY){
+      btns='<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>'
+        +'<button class="notif-del" title="Apagar lancamento" onclick="apagarNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#215;</button>';
+    }
     return '<div class="notif-item"><div class="notif-dot '+rec.tipo+'"></div>'
       +'<div class="notif-it-info"><div class="notif-it-desc">'+rec.desc.replace(/</g,'&lt;')+'</div><div class="notif-it-meta">'+meta+'</div></div>'
-      +'<div class="notif-it-val '+rec.tipo+'">'+fmtV(rec)+'</div>'+btn+'</div>';
+      +'<div class="notif-it-val '+rec.tipo+'">'+fmtV(rec)+'</div>'+btns+'</div>';
   };
   if(p.atrasados.length){html+='<div class="notif-sec atd">&#9888; Atrasados ('+p.atrasados.length+')</div>';p.atrasados.forEach(function(r){html+=linha(r);});}
   if(p.hoje.length){html+='<div class="notif-sec hoje">&#128197; Hoje ('+p.hoje.length+')</div>';p.hoje.forEach(function(r){html+=linha(r);});}
@@ -1300,6 +1306,19 @@ function marcarRecebidoNotif(mi,arr,idx){
   updateKPIs();updateCharts();autoSave();
   if(activeLancMonth===mi&&document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
   showToast((it.desc||'Lancamento')+' marcado como '+(arr==='entradas'?'recebido':'pago')+' ✓','var(--green)');
+  renderNotifPanel();
+}
+function apagarNotif(mi,arr,idx){
+  var it=RAW[mi]&&RAW[mi][arr]&&RAW[mi][arr][idx];
+  if(!it)return;
+  if(!confirm('Apagar lancamento "'+(it.desc||'sem descricao')+'" ('+fmt(parseFloat(it.val)||0)+')?\n\nCmd+Z para desfazer.'))return;
+  pushUndo('deleteRow',{monthIdx:mi,type:arr,rowIdx:idx,item:JSON.parse(JSON.stringify(it))});
+  RAW[mi][arr].splice(idx,1);
+  // Se era de contrato, suprime pra nao voltar na repopulacao
+  if(it.contratoId){contratosSuprimidos[RAW[mi].key+'|'+it.contratoId]=true;saveSuprimidos();}
+  recalcMonth(mi);updateKPIs();updateCharts();autoSave();
+  if(activeLancMonth===mi&&document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
+  showToast((it.desc||'Lancamento')+' apagado. Cmd+Z para desfazer.','var(--gold)');
   renderNotifPanel();
 }
 
