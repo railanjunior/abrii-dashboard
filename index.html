@@ -1290,8 +1290,8 @@ function renderNotifPanel(p){
     var meta=(rec.tipo==='en'?'Receber':'Pagar')+' &middot; '+rec.date+' &middot; '+RAW[rec.mi].label;
     var btns='';
     if(!IS_READONLY){
-      btns='<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>'
-        +'<button class="notif-del" title="Dispensar aviso (nao apaga o lancamento)" onclick="dispensarNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#215;</button>';
+      btns='<button class="notif-check" title="Marcar como '+(rec.tipo==='en'?'recebido':'pago')+'" onclick="event.stopPropagation();marcarRecebidoNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#10003;</button>'
+        +'<button class="notif-del" title="Dispensar aviso (nao apaga o lancamento)" onclick="event.stopPropagation();dispensarNotif('+rec.mi+',\''+rec.arr+'\','+rec.idx+')">&#215;</button>';
     }
     return '<div class="notif-item"><div class="notif-dot '+rec.tipo+'"></div>'
       +'<div class="notif-it-info"><div class="notif-it-desc">'+rec.desc.replace(/</g,'&lt;')+'</div><div class="notif-it-meta">'+meta+'</div></div>'
