@@ -1,0 +1,25 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+.vercel
+.turbo
+coverage/
+*.tsbuildinfo
+
+# segredos - NUNCA subir
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.production.example
+
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+
