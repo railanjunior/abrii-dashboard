@@ -722,7 +722,21 @@ function fbInitialSync(){
     setTimeout(function(){
       if(!IS_READONLY&&podeEscrever()&&typeof limpezaCadastro==='function')limpezaCadastro();
     },1500);
-  }).catch(function(e){console.warn('fbInitialSync err:',e);FB_READY=true;});
+  }).catch(function(e){
+    console.warn('fbInitialSync err:',e);FB_READY=true;
+    // Regras ja trancadas mas o navegador ainda estava no modo legado:
+    // em vez de mostrar dado velho calado, manda pro login.
+    var negado=(e&&(e.code==='PERMISSION_DENIED'||/permission_denied|permission denied/i.test(e.message||'')));
+    if(negado&&AUTH_LEGACY){
+      try{localStorage.removeItem(LEGACY_FLAG);}catch(x){}
+      AUTH_RESOLVED=false;AUTH_LEGACY=false;
+      loginMarkup();
+      var ov=document.getElementById('loginOverlay');if(ov)ov.classList.remove('hide');
+      var ap=document.querySelector('.app');if(ap)ap.classList.add('blur');
+      lgErro('O banco ja esta trancado. O modo legado nao vale mais: entre com o e-mail e a senha que voce criou no Firebase.');
+      try{firebase.auth().signOut();}catch(x){}
+    }
+  });
 }
 // ══════════════ LOGIN ══════════════
 // Sem login o painel nao mostra nada. As regras do Firebase sao a tranca de verdade;
