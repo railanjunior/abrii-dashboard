@@ -251,6 +251,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
     <div class="ni" data-tab="lancamentos">⊞ &nbsp;Lancamentos</div>
     <div class="ni" data-tab="contratos">⎆ &nbsp;Contratos</div>
     <div class="ni" data-tab="monthly">◯ &nbsp;Mes a Mes</div>
+    <div class="ni" data-tab="radar">⚓ &nbsp;Radar de Caixa</div>
     <div class="ni" data-tab="cashflow">⟁ &nbsp;Fluxo de Caixa</div>
     <div class="ni" data-tab="transactions">◎ &nbsp;Transacoes</div>
     <div class="ni" data-tab="insights">⬡ &nbsp;Insights</div>
@@ -301,6 +302,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
       <button class="tab" data-tab="lancamentos">Lancamentos</button>
       <button class="tab" data-tab="contratos">Contratos</button>
       <button class="tab" data-tab="monthly">Meses</button>
+      <button class="tab" data-tab="radar">Radar</button>
       <button class="tab" data-tab="cashflow">Caixa</button>
       <button class="tab" data-tab="transactions">Transacoes</button>
       <button class="tab" data-tab="insights">Insights</button>
@@ -356,6 +358,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
       </div>
     </div>
     <div id="tab-monthly" style="display:none"><div class="panel"><div class="ph"><div class="ph-d" style="background:var(--teal)"></div><div class="ph-t">DESEMPENHO MES A MES</div></div><div style="padding:16px 18px;overflow-x:auto"><table class="mt" id="monthTbl"></table></div></div></div>
+    <div id="tab-radar" style="display:none"><div id="radarBody"></div></div>
     <div id="tab-cashflow" style="display:none"><div class="panel"><div class="ph"><div class="ph-d" style="background:var(--teal)"></div><div class="ph-t">FLUXO DE CAIXA - DRE SIMPLIFICADO</div></div><div class="cf"><table id="cfTbl"></table></div></div></div>
     <div id="tab-transactions" style="display:none">
       <div class="month-sel" style="background:var(--sf);border:1px solid var(--br);border-radius:13px"><span class="ms-lbl">Filtrar:</span><div class="ms-pills" id="txPills"></div><button class="mp" style="border-style:dashed;flex-shrink:0;margin-left:auto" onclick="addNewMonthFromTx()">+ Novo Mes</button></div>
@@ -622,21 +625,56 @@ var META_KEY='abrii_meta_goal';
 var FB_CONFIG={apiKey:"AIzaSyBXdkd4zl9T4VqIZCIRf4_dCHmUi6sDSAk",authDomain:"abrii-dashboard.firebaseapp.com",databaseURL:"https://abrii-dashboard-default-rtdb.firebaseio.com",projectId:"abrii-dashboard",storageBucket:"abrii-dashboard.firebasestorage.app",messagingSenderId:"32127141680",appId:"1:32127141680:web:6c3c4885f4fbf5c4da2af5"};
 var IS_READONLY=(new URLSearchParams(location.search)).get('ro')==='1';
 var FB_READY=false, FB_LAST_LOCAL_WRITE=0, FB_DB_REF=null, FB_PUSH_TIMER=null;
+// ══ LOGIN ══ quem pode ESCREVER (mesma lista tem que estar nas regras do Firebase)
+var ADMIN_EMAILS=['abriiiacademy@gmail.com'];
+var AUTH_USER=null, AUTH_ADMIN=false, AUTH_LEGACY=false, AUTH_RESOLVED=false;
+var LEGACY_FLAG='abrii_auth_legado';
 if(typeof firebase!=='undefined'){
-  try{firebase.initializeApp(FB_CONFIG);FB_DB_REF=firebase.database().ref('abrii');
-    if(!IS_READONLY)firebase.auth().signInAnonymously().catch(function(e){console.warn('Auth fail:',e);});
-  }catch(e){console.warn('Firebase init falhou:',e);}
+  try{firebase.initializeApp(FB_CONFIG);FB_DB_REF=firebase.database().ref('abrii');}
+  catch(e){console.warn('Firebase init falhou:',e);}
 }
+function podeEscrever(){return AUTH_ADMIN||AUTH_LEGACY;}
 function fbPush(){
-  if(!FB_DB_REF||IS_READONLY||!FB_READY)return;
+  if(!FB_DB_REF||IS_READONLY||!FB_READY||!podeEscrever())return;
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
     var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
-    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),notifDisp:(typeof notifDispensadas!=='undefined'?notifDispensadas:{}),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),notifDisp:(typeof notifDispensadas!=='undefined'?notifDispensadas:{}),saldoCaixa:(typeof SALDO_CAIXA!=='undefined'?SALDO_CAIXA:null),config:(typeof CFG_FIN!=='undefined'?CFG_FIN:null),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
+    fbPushPublico();fbBackupDiario();
   },800);
 }
+// Nó público: só totais por mês, sem descricao, sem salario, sem nome de cliente.
+// É o que as outras ferramentas (planejamento 2026) consomem sem login.
+function fbPushPublico(){
+  if(!AUTH_ADMIN||typeof firebase==='undefined')return;
+  try{
+    var meses=RAW.map(function(m){return {key:m.key,label:m.label,e:Math.round(m.e*100)/100,s:Math.round(m.s*100)/100,l:Math.round(m.l*100)/100};});
+    firebase.database().ref('publico').set({meses:meses,updatedAt:Date.now()}).catch(function(e){console.warn('publico err:',e);});
+  }catch(e){}
+}
+// Backup automático: 1 snapshot por dia, guarda os últimos 30, apaga o resto sozinho.
+function fbBackupDiario(){
+  if(!AUTH_ADMIN||typeof firebase==='undefined')return;
+  var hoje=new Date();var dia=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+  var flag='abrii_bkp_'+dia;
+  try{if(localStorage.getItem(flag))return;}catch(e){}
+  try{
+    firebase.database().ref('backups/'+dia).set({raw:RAW,contratos:CONTRATOS,ts:Date.now()}).then(function(){
+      try{localStorage.setItem(flag,'1');}catch(e){}
+      firebase.database().ref('backupsIdx/'+dia).set(Date.now());
+      // poda: le so o indice (leve) e apaga o que passou de 30 dias
+      firebase.database().ref('backupsIdx').once('value').then(function(s){
+        var idx=s.val()||{};var limite=Date.now()-30*24*3600*1000;
+        Object.keys(idx).forEach(function(d){
+          if(idx[d]<limite){firebase.database().ref('backups/'+d).remove();firebase.database().ref('backupsIdx/'+d).remove();}
+        });
+      }).catch(function(){});
+      console.log('[backup] snapshot '+dia+' gravado');
+    }).catch(function(e){console.warn('backup err:',e);});
+  }catch(e){}
+}
 function fbInitialSync(){
-  if(!FB_DB_REF){FB_READY=true;return;}
+  if(!FB_DB_REF){FB_READY=true;if(typeof limpezaCadastro==='function')limpezaCadastro();return;}
   FB_DB_REF.once('value').then(function(snap){
     var remote=snap.val();
     if(remote&&remote.raw&&remote.raw.length>0){
@@ -646,16 +684,20 @@ function fbInitialSync(){
       if(remote.cobTpl&&remote.cobTpl.hoje&&remote.cobTpl.atrasado){cobTpl=remote.cobTpl;try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}}
       if(remote.suprimidos){contratosSuprimidos=remote.suprimidos;saveSuprimidos();}
       if(remote.notifDisp){notifDispensadas=remote.notifDisp;try{localStorage.setItem(NOTIF_DISM_KEY,JSON.stringify(notifDispensadas));}catch(e){}}
+      if(remote.saldoCaixa&&typeof SALDO_CAIXA!=='undefined'){SALDO_CAIXA=remote.saldoCaixa;saveSaldoLocal();}
+      if(remote.config&&typeof CFG_FIN!=='undefined'){CFG_FIN=Object.assign(CFG_FIN,remote.config);saveCfgLocal();}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
       updateKPIs();updateCharts();
+      if(typeof buildRadar==='function')buildRadar();
       if(document.getElementById('tab-lancamentos').style.display!=='none')buildLancamentos();
       if(document.getElementById('tab-contratos').style.display!=='none')buildContratos();
       console.log('[fbSync] dados puxados da nuvem');
     }
     FB_READY=true;
-    if(!IS_READONLY&&(!remote||!remote.raw||remote.raw.length===0)){fbPush();console.log('[fbSync] dados locais publicados na nuvem');}
+    if(!IS_READONLY&&podeEscrever()&&(!remote||!remote.raw||remote.raw.length===0)){fbPush();console.log('[fbSync] dados locais publicados na nuvem');}
+    if(AUTH_ADMIN){fbPushPublico();fbBackupDiario();}
     // Listener pra mudancas remotas em tempo real
     FB_DB_REF.on('value',function(s){
       var d=s.val();if(!d||!d.raw)return;
@@ -665,19 +707,137 @@ function fbInitialSync(){
       if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
       if(d.suprimidos)contratosSuprimidos=d.suprimidos;
       if(d.notifDisp)notifDispensadas=d.notifDisp;
+      if(d.saldoCaixa&&typeof SALDO_CAIXA!=='undefined'){SALDO_CAIXA=d.saldoCaixa;saveSaldoLocal();}
+      if(d.config&&typeof CFG_FIN!=='undefined'){CFG_FIN=Object.assign(CFG_FIN,d.config);saveCfgLocal();}
       try{localStorage.setItem(STORAGE_KEY,JSON.stringify(RAW));}catch(e){}
       try{localStorage.setItem('abrii_contratos',JSON.stringify(CONTRATOS));}catch(e){}
       if(activeLancMonth>=RAW.length)activeLancMonth=RAW.length-1;
       updateKPIs();updateCharts();
+      if(typeof buildRadar==='function')buildRadar();
       if(document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();
       if(document.getElementById('tab-contratos').style.display!=='none')buildContratos();
     });
+    // Correcoes de cadastro so DEPOIS que o listener ja disparou com o dado do servidor,
+    // senao o remoto sobrescreve a correcao logo em seguida.
+    setTimeout(function(){
+      if(!IS_READONLY&&podeEscrever()&&typeof limpezaCadastro==='function')limpezaCadastro();
+    },1500);
   }).catch(function(e){console.warn('fbInitialSync err:',e);FB_READY=true;});
+}
+// ══════════════ LOGIN ══════════════
+// Sem login o painel nao mostra nada. As regras do Firebase sao a tranca de verdade;
+// esta tela e a fechadura na porta. Enquanto o Email/Senha nao estiver ligado no console,
+// existe o botao de modo legado pra nada parar de funcionar.
+function loginMarkup(){
+  if(document.getElementById('loginOverlay'))return;
+  var css=document.createElement('style');
+  css.textContent='#loginOverlay{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 30%,#0e2220,#000 70%);display:flex;align-items:center;justify-content:center;font-family:Raleway,sans-serif}'
+   +'#loginOverlay.hide{display:none}'
+   +'.lg-card{width:min(400px,92vw);background:rgba(6,15,14,.94);border:1px solid rgba(198,161,91,.28);border-radius:10px;padding:38px 34px 30px;box-shadow:0 30px 80px -30px #000}'
+   +'.lg-logo{display:flex;justify-content:center;margin-bottom:18px}'
+   +'.lg-t{font-family:Cinzel,serif;font-size:19px;color:var(--cream);text-align:center;letter-spacing:2px;margin-bottom:4px}'
+   +'.lg-s{font-size:11px;color:#6f8a86;text-align:center;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:26px}'
+   +'.lg-lbl{font-size:10px;color:#7e968f;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:block}'
+   +'.lg-i{width:100%;background:#0a1918;border:1px solid rgba(47,153,165,.25);border-radius:6px;color:var(--tx);padding:11px 13px;font-size:14px;font-family:Raleway,sans-serif;margin-bottom:16px;outline:none;transition:border-color .18s}'
+   +'.lg-i:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(47,153,165,.12)}'
+   +'.lg-b{width:100%;background:linear-gradient(90deg,var(--td),var(--teal));border:none;border-radius:6px;color:#fff;font-weight:700;font-size:13px;letter-spacing:1.4px;text-transform:uppercase;padding:13px;cursor:pointer;transition:filter .18s}'
+   +'.lg-b:hover{filter:brightness(1.16)} .lg-b:disabled{opacity:.5;cursor:wait}'
+   +'.lg-err{background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.35);color:#ffb3b3;font-size:12px;line-height:1.5;border-radius:6px;padding:10px 12px;margin-bottom:14px;display:none}'
+   +'.lg-legado{display:block;width:100%;background:none;border:none;color:#5d7570;font-size:11px;letter-spacing:.5px;margin-top:16px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}'
+   +'.lg-legado:hover{color:var(--gold)}'
+   +'.app.blur{filter:blur(16px);pointer-events:none;user-select:none}'
+   +'.sb-user{display:flex;align-items:center;gap:8px;padding:9px 12px;margin:0 14px 10px;background:rgba(47,153,165,.06);border:1px solid rgba(47,153,165,.18);border-radius:6px}'
+   +'.sb-user-e{flex:1;font-size:10.5px;color:#8fa9a4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+   +'.sb-user-x{background:none;border:none;color:#e05555;font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:700;text-transform:uppercase}';
+  document.head.appendChild(css);
+  var ov=document.createElement('div');ov.id='loginOverlay';
+  ov.innerHTML='<div class="lg-card">'
+   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
+   +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Acesso restrito</div>'
+   +'<div class="lg-err" id="lgErr"></div>'
+   +'<label class="lg-lbl" for="lgMail">E-mail</label><input class="lg-i" id="lgMail" type="email" autocomplete="username" placeholder="voce@abrii.com">'
+   +'<label class="lg-lbl" for="lgPass">Senha</label><input class="lg-i" id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••">'
+   +'<button class="lg-b" id="lgBtn" onclick="fazerLogin()">Entrar</button>'
+   +'<button class="lg-legado" onclick="entrarModoLegado()">Ainda nao configurei o login no Firebase</button>'
+   +'</div>';
+  document.body.appendChild(ov);
+  var ap=document.querySelector('.app');if(ap)ap.classList.add('blur');
+  ov.addEventListener('keydown',function(e){if(e.key==='Enter')fazerLogin();});
+  setTimeout(function(){var m=document.getElementById('lgMail');if(m)m.focus();},80);
+}
+function lgErro(msg){var e=document.getElementById('lgErr');if(!e)return;e.textContent=msg;e.style.display='block';}
+function fazerLogin(){
+  var mail=(document.getElementById('lgMail').value||'').trim();
+  var pass=document.getElementById('lgPass').value||'';
+  if(!mail||!pass){lgErro('Preencha e-mail e senha.');return;}
+  var b=document.getElementById('lgBtn');b.disabled=true;b.textContent='Entrando...';
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function(){
+    return firebase.auth().signInWithEmailAndPassword(mail,pass);
+  }).catch(function(e){
+    b.disabled=false;b.textContent='Entrar';
+    var c=e.code||'';
+    if(c==='auth/operation-not-allowed')lgErro('O login por e-mail e senha ainda nao foi ligado no console do Firebase. Use o botao cinza abaixo por enquanto.');
+    else if(c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found')lgErro('E-mail ou senha nao conferem.');
+    else if(c==='auth/too-many-requests')lgErro('Muitas tentativas seguidas. Espere um minuto e tente de novo.');
+    else if(c==='auth/network-request-failed')lgErro('Sem conexao com o Firebase. Verifique a internet.');
+    else lgErro('Nao consegui entrar: '+(e.message||c));
+  });
+}
+function entrarModoLegado(){
+  try{localStorage.setItem(LEGACY_FLAG,'1');}catch(e){}
+  AUTH_LEGACY=true;
+  firebase.auth().signInAnonymously().catch(function(){resolverAuth();});
+  setTimeout(resolverAuth,400);
+}
+function sairDaConta(){
+  try{localStorage.removeItem(LEGACY_FLAG);}catch(e){}
+  firebase.auth().signOut().then(function(){location.reload();}).catch(function(){location.reload();});
+}
+function pintarUsuarioNaSidebar(){
+  var nav=document.querySelector('.sb-nav');if(!nav||document.getElementById('sbUser'))return;
+  var box=document.createElement('div');box.className='sb-user';box.id='sbUser';
+  var quem=AUTH_LEGACY?'modo legado (sem login)':(AUTH_USER&&AUTH_USER.email?AUTH_USER.email:'—');
+  var papel=AUTH_ADMIN?'⬤':(AUTH_LEGACY?'⚠':'◐');
+  box.innerHTML='<span style="color:'+(AUTH_ADMIN?'var(--green)':(AUTH_LEGACY?'var(--red)':'var(--gold)'))+';font-size:9px">'+papel+'</span>'
+   +'<span class="sb-user-e" title="'+quem+'">'+quem+'</span>'
+   +'<button class="sb-user-x" onclick="sairDaConta()">Sair</button>';
+  nav.parentNode.insertBefore(box,nav.nextSibling);
+}
+function resolverAuth(){
+  if(AUTH_RESOLVED)return;AUTH_RESOLVED=true;
+  var ov=document.getElementById('loginOverlay');if(ov)ov.classList.add('hide');
+  var ap=document.querySelector('.app');if(ap)ap.classList.remove('blur');
+  if(!AUTH_ADMIN&&!AUTH_LEGACY){ // socio: so olha
+    IS_READONLY=true;
+    document.body.classList.add('view-mode','readonly-mode');
+    try{setMode('view');}catch(e){}
+    var mt=document.querySelector('.mode-toggle');if(mt)mt.style.display='none';
+    var sa=document.querySelector('.sb-actions');if(sa)sa.style.display='none';
+  }
+  pintarUsuarioNaSidebar();
+  fbInitialSync();
+}
+function authBoot(){
+  if(typeof firebase==='undefined'||!firebase.auth){FB_READY=true;AUTH_LEGACY=true;resolverAuth();return;}
+  loginMarkup();
+  var tentouAnon=false;
+  firebase.auth().onAuthStateChanged(function(u){
+    if(u&&!u.isAnonymous){
+      AUTH_USER=u;AUTH_ADMIN=ADMIN_EMAILS.indexOf(String(u.email||'').toLowerCase())>=0;AUTH_LEGACY=false;
+      resolverAuth();
+    }else if(u&&u.isAnonymous){
+      AUTH_LEGACY=true;resolverAuth();
+    }else{
+      var legado=false;try{legado=localStorage.getItem(LEGACY_FLAG)==='1';}catch(e){}
+      if(legado&&!tentouAnon){tentouAnon=true;AUTH_LEGACY=true;firebase.auth().signInAnonymously().catch(function(){resolverAuth();});}
+      else if(!AUTH_RESOLVED){var ov=document.getElementById('loginOverlay');if(ov)ov.classList.remove('hide');}
+    }
+  });
 }
 function copySocioLink(){
   var url=location.origin+location.pathname+'?ro=1';
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(url).then(function(){showToast('Link copiado pros socios ✓','var(--teal)');},function(){prompt('Copie o link:',url);});
+    navigator.clipboard.writeText(url).then(function(){showToast('Link copiado. O socio entra com o login dele ✓','var(--teal)');},function(){prompt('Copie o link:',url);});
   } else {prompt('Copie o link para enviar aos socios:',url);}
 }
 
@@ -731,11 +891,12 @@ function pendingCount(){return RAW.flatMap(function(m){return m.entradas;}).filt
 function setMode(m){editMode=m==='edit';document.getElementById('btn-edit').classList.toggle('on',editMode);document.getElementById('btn-view').classList.toggle('on',!editMode);document.getElementById('mainContent').classList.toggle('view-mode',!editMode);if(document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();}
 
 function switchTab(name){
-  ['overview','lancamentos','contratos','monthly','cashflow','transactions','insights','anual'].forEach(function(t){var el=document.getElementById('tab-'+t);if(el)el.style.display=t===name?'':'none';});
+  ['overview','lancamentos','contratos','radar','monthly','cashflow','transactions','insights','anual'].forEach(function(t){var el=document.getElementById('tab-'+t);if(el)el.style.display=t===name?'':'none';});
   document.querySelectorAll('.tab,.ni').forEach(function(el){el.classList.toggle('on',el.dataset.tab===name);});
-  var L={overview:'Visao Geral',lancamentos:'Lancamentos',contratos:'Contratos Recorrentes',monthly:'Mes a Mes',cashflow:'Fluxo de Caixa',transactions:'Transacoes',insights:'Insights',anual:'Resultado Anual'};
+  var L={overview:'Visao Geral',lancamentos:'Lancamentos',contratos:'Contratos Recorrentes',radar:'Radar de Caixa',monthly:'Mes a Mes',cashflow:'Fluxo de Caixa',transactions:'Transacoes',insights:'Insights',anual:'Resultado Anual'};
   document.getElementById('tb-period').textContent=L[name]||name;
   if(name==='monthly')buildMonthTable();
+  if(name==='radar')buildRadar();
   if(name==='cashflow')buildCashflow();
   if(name==='transactions')buildTxPills();
   if(name==='insights')buildInsights();
@@ -2185,6 +2346,294 @@ function saveDescontos(){
 document.getElementById('ctrOverlay').addEventListener('click',function(e){if(e.target===e.currentTarget)closeContratoModal();});
 document.getElementById('descOverlay').addEventListener('click',function(e){if(e.target===e.currentTarget)closeDescModal();});
 
+// ══════════════════════════════════════════════════════════════
+// ══ RADAR DE CAIXA ══ saldo real, curva projetada, imposto, vencimentos
+// Empresa nao quebra por prejuizo, quebra por falta de caixa. Esta aba e o sonar.
+// ══════════════════════════════════════════════════════════════
+var SALDO_KEY='abrii_saldo_caixa', CFG_KEY='abrii_cfg_fin';
+var SALDO_CAIXA={val:0,data:'',ts:0};
+var CFG_FIN={impostoPct:0,horizonte:75,avisoRenov:90};
+try{var _s=localStorage.getItem(SALDO_KEY);if(_s)SALDO_CAIXA=JSON.parse(_s);}catch(e){}
+try{var _c=localStorage.getItem(CFG_KEY);if(_c)CFG_FIN=Object.assign(CFG_FIN,JSON.parse(_c));}catch(e){}
+function saveSaldoLocal(){try{localStorage.setItem(SALDO_KEY,JSON.stringify(SALDO_CAIXA));}catch(e){}}
+function saveCfgLocal(){try{localStorage.setItem(CFG_KEY,JSON.stringify(CFG_FIN));}catch(e){}}
+
+function hojeZero(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();}
+function dtBR(s){var m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s||'').trim());if(!m)return null;return new Date(+m[3],+m[2]-1,+m[1]).getTime();}
+function brDt(t){var d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+function brDtCurto(t){var d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');}
+
+// Todos os lancamentos datados, virados em movimento de caixa (+entrada, -saida)
+function radarMovimentos(){
+  var out=[];
+  RAW.forEach(function(m){
+    (m.entradas||[]).forEach(function(e){var t=dtBR(e.date);if(t)out.push({t:t,v:+e.val||0,desc:e.desc||'',tipo:'e'});});
+    (m.saidas||[]).forEach(function(s){var t=dtBR(s.date);if(t)out.push({t:t,v:-(+s.val||0),desc:s.desc||'',tipo:'s'});});
+  });
+  return out.sort(function(a,b){return a.t-b.t;});
+}
+// Provisao de imposto: DAS do Simples vence dia 20 do mes seguinte ao faturamento
+function radarImpostos(ate){
+  var out=[];var pct=+CFG_FIN.impostoPct||0;if(pct<=0)return out;
+  RAW.forEach(function(m){
+    if(!m.key)return;
+    var p=m.key.split('-');var y=+p[0],mo=+p[1];
+    var vy=mo===12?y+1:y, vm=mo===12?1:mo+1;
+    var t=new Date(vy,vm-1,20).getTime();
+    if(t<=ate)out.push({t:t,v:-(m.e*pct/100),desc:'Provisao de imposto sobre '+m.label,tipo:'imp'});
+  });
+  return out;
+}
+function custoDiarioMedio(){
+  var ult=RAW.slice(-3);if(!ult.length)return 0;
+  var tot=ult.reduce(function(a,m){return a+(m.s||0);},0);
+  return tot/(ult.length*30.4);
+}
+function folhaEstimada(){
+  for(var i=RAW.length-1;i>=0;i--){
+    var f=(RAW[i].saidas||[]).filter(function(s){return /sal[aá]rio|pr[oó]\s*-?\s*labore/i.test(s.desc||'');})
+      .reduce(function(a,b){return a+(+b.val||0);},0);
+    if(f>0)return f;
+  }
+  return 0;
+}
+function saldoBase(){
+  var t=dtBR(SALDO_CAIXA.data);
+  return {val:+SALDO_CAIXA.val||0, t:(t||hojeZero()), informado:!!(t&&SALDO_CAIXA.val)};
+}
+// Curva dia a dia a partir do saldo informado
+function projetarCaixa(){
+  var base=saldoBase();
+  var dias=+CFG_FIN.horizonte||75;
+  var fim=base.t+dias*86400000;
+  var movs=radarMovimentos().concat(radarImpostos(fim)).filter(function(m){return m.t>base.t&&m.t<=fim;});
+  var porDia={};
+  movs.forEach(function(m){var k=String(m.t);(porDia[k]=porDia[k]||[]).push(m);});
+  var pontos=[],saldo=base.val,pior={v:base.val,t:base.t};
+  pontos.push({t:base.t,v:saldo,movs:[]});
+  for(var d=1;d<=dias;d++){
+    var t=base.t+d*86400000;var lst=porDia[String(t)]||[];
+    lst.forEach(function(m){saldo+=m.v;});
+    if(saldo<pior.v){pior={v:saldo,t:t};}
+    pontos.push({t:t,v:saldo,movs:lst});
+  }
+  return {base:base,pontos:pontos,pior:pior,fim:saldo};
+}
+// Vencimento de contrato lido do proprio lancamento: "(3/12)" = faltam 9
+function radarVencimentos(){
+  var ultimo=null;
+  for(var i=RAW.length-1;i>=0;i--){if((RAW[i].entradas||[]).length){ultimo=RAW[i];break;}}
+  if(!ultimo)return {mes:'',itens:[]};
+  var p=ultimo.key.split('-');var y=+p[0],mo=+p[1];
+  var itens=[];
+  (ultimo.entradas||[]).forEach(function(e){
+    var m=/\((\d+)\s*\/\s*(\d+)\)/.exec(e.desc||'');if(!m)return;
+    var n=+m[1],N=+m[2];var faltam=N-n;if(faltam<0)faltam=0;
+    var vm=mo+faltam,vy=y+Math.floor((vm-1)/12);vm=((vm-1)%12)+1;
+    itens.push({desc:(e.desc||'').replace(/\s*\(\d+\/\d+\)\s*$/,''),val:+e.val||0,faltam:faltam,
+      venceEm:MNS_SHORT[vm]+'/'+String(vy).slice(2),ts:new Date(vy,vm-1,28).getTime()});
+  });
+  itens.sort(function(a,b){return a.ts-b.ts||b.val-a.val;});
+  return {mes:ultimo.label,itens:itens};
+}
+function radarAno(){
+  var y=String(new Date().getFullYear());
+  var ms=RAW.filter(function(m){return m.key&&m.key.indexOf(y+'-')===0;});
+  var e=ms.reduce(function(a,m){return a+(m.e||0);},0);
+  var s=ms.reduce(function(a,m){return a+(m.s||0);},0);
+  var imp=e*(+CFG_FIN.impostoPct||0)/100;
+  return {ano:y,e:e,s:s,l:e-s,imp:imp,liq:e-s-imp,meses:ms.length};
+}
+function setSaldo(){
+  var v=document.getElementById('rdSaldoIn'),d=document.getElementById('rdSaldoDt');
+  if(!v)return;
+  var num=parseFloat(String(v.value).replace(/[R$\s]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.'))||0;
+  SALDO_CAIXA={val:num,data:(d&&d.value)||brDt(hojeZero()),ts:Date.now()};
+  saveSaldoLocal();fbPush();buildRadar();showToast('Saldo em caixa atualizado ✓','var(--teal)');
+}
+function setImposto(el){
+  CFG_FIN.impostoPct=Math.max(0,Math.min(30,parseFloat(String(el.value).replace(',','.'))||0));
+  saveCfgLocal();fbPush();buildRadar();
+}
+function setHorizonte(el){CFG_FIN.horizonte=Math.max(15,Math.min(180,parseInt(el.value)||75));saveCfgLocal();fbPush();buildRadar();}
+
+function radarCSS(){
+  if(document.getElementById('radarCss'))return;
+  var st=document.createElement('style');st.id='radarCss';
+  st.textContent='.rd-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}'
+   +'.rd-c{background:var(--sf2);border:1px solid rgba(47,153,165,.16);border-radius:9px;padding:18px 20px 20px}'
+   +'.rd-c.alerta{border-color:rgba(224,85,85,.4);background:linear-gradient(180deg,rgba(224,85,85,.05),var(--sf2))}'
+   +'.rd-c.ok{border-color:rgba(47,170,106,.32)}'
+   +'.rd-h{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#7e968f;font-weight:700;margin-bottom:12px}'
+   +'.rd-big{font-family:Cinzel,serif;font-size:31px;line-height:1.1;color:var(--cream);letter-spacing:-.5px}'
+   +'.rd-sub{font-size:12px;color:#8fa9a4;margin-top:7px;line-height:1.55}'
+   +'.rd-in{background:#0a1918;border:1px solid rgba(47,153,165,.28);border-radius:6px;color:var(--tx);padding:9px 11px;font-size:14px;font-family:Raleway,sans-serif;outline:none;width:100%}'
+   +'.rd-in:focus{border-color:var(--teal)}'
+   +'.rd-row{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-end;margin-top:6px}'
+   +'.rd-row>div{min-width:118px}'
+   +'.rd-lb{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#6f8a86;font-weight:700;display:block;margin-bottom:5px}'
+   +'.rd-bt{background:linear-gradient(90deg,var(--td),var(--teal));border:none;border-radius:6px;color:#fff;font-weight:700;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;padding:10px 15px;cursor:pointer;white-space:nowrap}'
+   +'.rd-bt:hover{filter:brightness(1.15)}'
+   +'.rd-tb{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}'
+   +'.rd-tb th{text-align:left;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:#6f8a86;font-weight:700;padding:8px 10px;border-bottom:1px solid rgba(47,153,165,.16)}'
+   +'.rd-tb td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.045);color:#cfe0dd}'
+   +'.rd-tb td.n,.rd-tb th.n{text-align:right;font-variant-numeric:tabular-nums}'
+   +'.rd-tb tr:last-child td{border-bottom:none}'
+   +'.rd-pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px}'
+   +'.rd-pill.j{background:rgba(224,85,85,.16);color:#ff9b9b}'
+   +'.rd-pill.a{background:rgba(198,161,91,.16);color:var(--gold)}'
+   +'.rd-pill.v{background:rgba(47,170,106,.14);color:#6fd6a2}'
+   +'.rd-note{font-size:11.5px;color:#6f8a86;line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05)}'
+   +'.rd-wide{grid-column:1/-1}';
+  document.head.appendChild(st);
+}
+
+function buildRadar(){
+  radarCSS();
+  var el=document.getElementById('radarBody');if(!el)return;
+  var pj=projetarCaixa(),base=pj.base;
+  var cd=custoDiarioMedio(),folha=folhaEstimada();
+  var autonomia=cd>0?base.val/cd:0;
+  var ano=radarAno(),venc=radarVencimentos();
+  var h='';
+
+  // ── 1. Saldo + autonomia ──
+  var classeAut=autonomia<15?'alerta':(autonomia<45?'':'ok');
+  h+='<div class="rd-g">';
+  h+='<div class="rd-c"><div class="rd-h">Saldo em caixa hoje</div>'
+    +'<div class="rd-big">'+fmt2(base.val)+'</div>'
+    +'<div class="rd-sub">'+(base.informado?'Informado por voce em '+SALDO_CAIXA.data+'. Atualize sempre que conferir o banco.':'<span style="color:var(--gold)">Ainda nao informado. Preencha abaixo com o saldo do banco.</span>')+'</div>'
+    +'<div class="rd-row"><div style="flex:1"><span class="rd-lb">Saldo (R$)</span><input class="rd-in" id="rdSaldoIn" value="'+(base.val||'')+'" placeholder="14459,78"></div>'
+    +'<div style="width:118px"><span class="rd-lb">Na data</span><input class="rd-in" id="rdSaldoDt" value="'+(SALDO_CAIXA.data||brDt(hojeZero()))+'" placeholder="dd/mm/aaaa"></div>'
+    +'<button class="rd-bt" onclick="setSaldo()">Salvar</button></div></div>';
+
+  h+='<div class="rd-c '+classeAut+'"><div class="rd-h">Autonomia de caixa</div>'
+    +'<div class="rd-big" style="color:'+(autonomia<15?'var(--red)':(autonomia<45?'var(--gold)':'var(--green)'))+'">'+(cd>0?autonomia.toFixed(1)+' dias':'—')+'</div>'
+    +'<div class="rd-sub">Quantos dias o caixa aguenta se a receita parar hoje. Custo medio de '+fmt2(cd)+' por dia corrido (media dos ultimos 3 meses).<br>'
+    +'Referencia: <b>1 folha = '+fmt(folha)+'</b> · saudavel = 90 dias ('+fmt(cd*90)+').</div></div>';
+
+  // ── 2. Provisao de imposto ──
+  var pct=+CFG_FIN.impostoPct||0;
+  h+='<div class="rd-c '+(pct<=0?'alerta':'')+'"><div class="rd-h">Provisao de imposto</div>'
+    +(pct<=0
+      ? '<div class="rd-big" style="color:var(--red);font-size:22px">Nao configurado</div><div class="rd-sub">Nao existe nenhum lancamento de imposto em '+ano.ano+' e nenhuma provisao aqui. Enquanto isso, o resultado que este painel mostra e melhor do que a verdade. Peca a aliquota efetiva ao contador e preencha abaixo.</div>'
+      : '<div class="rd-big">'+fmt(ano.imp)+'</div><div class="rd-sub">Imposto estimado sobre os '+fmt(ano.e)+' faturados em '+ano.ano+' ('+ano.meses+' meses). Media de '+fmt(ano.imp/Math.max(1,ano.meses))+' por mes.</div>')
+    +'<div class="rd-row"><div style="width:120px"><span class="rd-lb">Aliquota %</span><input class="rd-in" id="rdImp" value="'+pct+'" onchange="setImposto(this)"></div>'
+    +'<div style="width:130px"><span class="rd-lb">Horizonte (dias)</span><input class="rd-in" value="'+(CFG_FIN.horizonte||75)+'" onchange="setHorizonte(this)"></div>'
+    +'<div style="flex:1"><span class="rd-lb">Resultado '+ano.ano+' depois do imposto</span>'
+    +'<div style="font-family:Cinzel,serif;font-size:19px;color:'+(ano.liq>=0?'var(--green)':'var(--red)')+';padding:5px 0">'+(ano.liq>=0?'+':'')+fmt(ano.liq)+'</div></div></div>'
+    +'<div class="rd-note">Sem imposto o painel mostra '+(ano.l>=0?'+':'')+fmt(ano.l)+'. A diferenca de '+fmt(ano.imp)+' e exatamente o tamanho da ilusao.</div></div>';
+  h+='</div>';
+
+  // ── 3. Curva de caixa ──
+  h+='<div class="rd-c rd-wide" style="margin-bottom:14px"><div class="rd-h">Curva de caixa projetada — proximos '+(CFG_FIN.horizonte||75)+' dias</div>';
+  h+=svgCurvaCaixa(pj,folha);
+  var piorRuim=pj.pior.v<0, piorApertado=pj.pior.v<folha&&folha>0;
+  h+='<div class="rd-note">'
+    +'Menor saldo do periodo: <b style="color:'+(piorRuim?'var(--red)':(piorApertado?'var(--gold)':'var(--green)'))+'">'+fmt2(pj.pior.v)+'</b> em '+brDt(pj.pior.t)+'. '
+    +'Saldo no fim do horizonte: <b>'+fmt2(pj.fim)+'</b>.'
+    +(piorRuim?' <span style="color:var(--red)">O caixa fura o zero nessa data. Antecipe recebimento ou empurre pagamento antes dela.</span>'
+      :(piorApertado?' <span style="color:var(--gold)">O caixa fica abaixo de uma folha de pagamento nessa data.</span>':' Folga confortavel no periodo.'))
+    +'<br>A curva parte do saldo informado e soma cada lancamento datado do sistema'+(pct>0?', mais a provisao de imposto no dia 20 de cada mes':'')+'. Lancamento sem data nao entra.</div></div>';
+
+  // ── 4. Vencimentos ──
+  var proximos=venc.itens.filter(function(i){return i.faltam<=6;});
+  var somaProx=proximos.filter(function(i){return i.faltam<=3;}).reduce(function(a,b){return a+b.val;},0);
+  h+='<div class="rd-c rd-wide"><div class="rd-h">Calendario de renovacao — o funil mais barato que voce tem</div>';
+  if(!venc.itens.length){h+='<div class="rd-sub">Nenhum lancamento com parcela no formato (3/12) no mes de '+venc.mes+'. O calendario le a parcela direto da descricao.</div>';}
+  else{
+    h+='<div class="rd-sub" style="margin-bottom:12px">Lido das parcelas de <b>'+venc.mes+'</b>. Nos proximos 3 meses vencem <b style="color:var(--gold)">'+fmt(somaProx)+'/mes</b> de receita contratada. Renovar custa uma ligacao, repor vendendo custa lead, reuniao e desconto.</div>';
+    h+='<div style="overflow-x:auto"><table class="rd-tb"><tr><th>Contrato</th><th class="n">Por mes</th><th class="n">Parcelas</th><th>Ultima cai em</th><th>Acao</th></tr>';
+    venc.itens.forEach(function(i){
+      var cls=i.faltam<=1?'j':(i.faltam<=3?'a':'v');
+      var acao=i.faltam<=0?'Vence agora':(i.faltam<=1?'Ligar esta semana':(i.faltam<=3?'Agendar conversa':'Acompanhar'));
+      h+='<tr><td>'+i.desc+'</td><td class="n">'+fmt(i.val)+'</td><td class="n">'+i.faltam+' restante'+(i.faltam===1?'':'s')+'</td><td>'+i.venceEm+'</td><td><span class="rd-pill '+cls+'">'+acao+'</span></td></tr>';
+    });
+    h+='</table></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function svgCurvaCaixa(pj,folha){
+  var P=pj.pontos;if(P.length<2)return '';
+  var W=980,H=250,ml=64,mr=14,mt=18,mb=26;
+  var vals=P.map(function(p){return p.v;});
+  var min=Math.min.apply(null,vals.concat([0])),max=Math.max.apply(null,vals.concat([folha||0]));
+  var pad=(max-min)*0.12||1000;min-=pad;max+=pad;
+  var pw=W-ml-mr,ph=H-mt-mb;
+  function X(i){return ml+(i/(P.length-1))*pw;}
+  function Y(v){return mt+ph-((v-min)/(max-min))*ph;}
+  var d='',area='';
+  P.forEach(function(p,i){d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)+' ';});
+  area='M'+X(0).toFixed(1)+' '+Y(0).toFixed(1)+' '+P.map(function(p,i){return 'L'+X(i).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ')+' L'+X(P.length-1).toFixed(1)+' '+Y(0).toFixed(1)+' Z';
+  var y0=Y(0),yf=folha>0?Y(folha):null;
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Curva de saldo em caixa projetado dia a dia">';
+  s+='<defs><linearGradient id="rdGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2f99a5" stop-opacity=".35"/><stop offset="100%" stop-color="#2f99a5" stop-opacity="0"/></linearGradient></defs>';
+  // grade horizontal
+  for(var g=0;g<=4;g++){
+    var vv=min+(max-min)*g/4,yy=Y(vv);
+    s+='<line x1="'+ml+'" y1="'+yy.toFixed(1)+'" x2="'+(W-mr)+'" y2="'+yy.toFixed(1)+'" stroke="rgba(255,255,255,.055)" stroke-width="1"/>';
+    s+='<text x="'+(ml-8)+'" y="'+(yy+3.5).toFixed(1)+'" fill="#5d7570" font-size="10" text-anchor="end" font-family="Raleway,sans-serif">'+Math.round(vv/1000)+'k</text>';
+  }
+  s+='<path d="'+area+'" fill="url(#rdGrad)"/>';
+  if(yf!==null&&yf>mt&&yf<mt+ph){
+    s+='<line x1="'+ml+'" y1="'+yf.toFixed(1)+'" x2="'+(W-mr)+'" y2="'+yf.toFixed(1)+'" stroke="#c6a15b" stroke-width="1.5" stroke-dasharray="5 4" opacity=".75"/>';
+    s+='<text x="'+(W-mr)+'" y="'+(yf-6).toFixed(1)+'" fill="#c6a15b" font-size="10" font-weight="700" text-anchor="end" font-family="Raleway,sans-serif">piso: 1 folha</text>';
+  }
+  s+='<line x1="'+ml+'" y1="'+y0.toFixed(1)+'" x2="'+(W-mr)+'" y2="'+y0.toFixed(1)+'" stroke="#e05555" stroke-width="1.5" opacity=".8"/>';
+  s+='<path d="'+d+'" fill="none" stroke="#2f99a5" stroke-width="2.2" stroke-linejoin="round"/>';
+  // marcador do pior dia
+  var pi=0;for(var i=0;i<P.length;i++){if(P[i].v===pj.pior.v){pi=i;break;}}
+  s+='<circle cx="'+X(pi).toFixed(1)+'" cy="'+Y(pj.pior.v).toFixed(1)+'" r="5" fill="'+(pj.pior.v<0?'#e05555':'#c6a15b')+'" stroke="#060f0e" stroke-width="2"/>';
+  s+='<text x="'+X(pi).toFixed(1)+'" y="'+(Y(pj.pior.v)+20).toFixed(1)+'" fill="'+(pj.pior.v<0?'#ff9b9b':'#c6a15b')+'" font-size="10.5" font-weight="700" text-anchor="middle" font-family="Raleway,sans-serif">menor: '+brDtCurto(pj.pior.t)+'</text>';
+  // eixo x
+  var passos=Math.min(6,P.length-1);
+  for(var k=0;k<=passos;k++){
+    var idx=Math.round(k*(P.length-1)/passos);
+    s+='<text x="'+X(idx).toFixed(1)+'" y="'+(H-7)+'" fill="#5d7570" font-size="10" text-anchor="middle" font-family="Raleway,sans-serif">'+brDtCurto(P[idx].t)+'</text>';
+  }
+  return s+'</svg>';
+}
+
+// ══ LIMPEZA IDEMPOTENTE DO CADASTRO DE CONTRATOS ══
+// Corrige o que estava fora da realidade em 14/08/2026.
+// IMPORTANTE: roda DEPOIS do sync com a nuvem, senao o dado remoto sobrescreve a correcao.
+function limpezaCadastro(){
+  try{
+    var FLAG='abrii_fix_cadastro_2026_08';
+    if(localStorage.getItem(FLAG))return;
+    if(!window.CONTRATOS||!CONTRATOS.length)return;
+    var mudou=0;
+    // acento vira letra simples antes de comparar (a base tem acento composto em alguns campos)
+    function sem(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();}
+    // 1. salario do Adrian estava cadastrado como R$ 2,93 em vez de R$ 2.929,17
+    CONTRATOS.forEach(function(c){
+      if(sem(c.cliente).indexOf('adrian')>=0&&sem(c.servico).indexOf('salario')>=0&&(+c.valorBase||0)<100){c.valorBase=2929.17;mudou++;}
+    });
+    // 2. clientes que ja sairam continuavam ativos
+    ['vert eletro','sc representa','ac clean','kauan','arena quintino','movatta','di fabrica','cr clean'].forEach(function(nome){
+      CONTRATOS.forEach(function(c){
+        if(c.tipo==='entrada'&&c.ativo&&sem(c.cliente).indexOf(nome)>=0){c.ativo=false;c.obs=(c.obs?c.obs+' | ':'')+'Encerrado (churn) - marcado em 14/08/2026';mudou++;}
+      });
+    });
+    // 3. valores que nao batiam com o que entra de fato
+    CONTRATOS.forEach(function(c){
+      if(c.tipo!=='entrada')return;
+      if(sem(c.cliente).indexOf('couto')>=0&&(+c.valorBase||0)>900){c.valorBase=596;c.descontos=null;mudou++;}
+      if(sem(c.cliente).indexOf('lypedepyl')>=0&&(+c.valorBase||0)>3000){c.valorBase=1975.17;c.descontos=null;
+        c.obs=(c.obs?c.obs+' | ':'')+'Reduziu de 4.103 para 1.975 em ago/26';mudou++;}
+    });
+    if(mudou){
+      saveContratos();
+      if(document.getElementById('tab-contratos').style.display!=='none')buildContratos();
+      setTimeout(function(){showToast(mudou+' correcoes no cadastro de contratos aplicadas ✓','var(--gold)');},1400);
+      console.log('[limpezaCadastro] '+mudou+' registros corrigidos');
+    }
+    localStorage.setItem(FLAG,'1');
+  }catch(e){console.warn('limpezaCadastro falhou:',e);}
+}
+
 // Aviso de storage
 (function(){
   var hasLS=false;
@@ -2234,7 +2683,7 @@ if(IS_READONLY){
   _b.innerHTML='&#9679; Visualizacao para Socios &mdash; Dados sincronizados em tempo real';
   document.body.prepend(_b);
 }
-fbInitialSync();
+authBoot();
 // ── Notificacoes in-app ──
 updateNotif();
 pedirPermissaoNotif();
