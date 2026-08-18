@@ -629,6 +629,9 @@ var FB_READY=false, FB_LAST_LOCAL_WRITE=0, FB_DB_REF=null, FB_PUSH_TIMER=null;
 var ADMIN_EMAILS=['abriiiacademy@gmail.com'];
 var AUTH_USER=null, AUTH_ADMIN=false, AUTH_LEGACY=false, AUTH_RESOLVED=false;
 var LEGACY_FLAG='abrii_auth_legado';
+// ══ ACESSO SOCIO (link ?ro=1): senha unica simples, sem criar conta ══
+var SOCIO_SENHA='socios2026'; // senha unica compartilhada com os socios (modo ?ro=1)
+var SOCIO_FLAG='abrii_socio_ok';
 if(typeof firebase!=='undefined'){
   try{firebase.initializeApp(FB_CONFIG);FB_DB_REF=firebase.database().ref('abrii');}
   catch(e){console.warn('Firebase init falhou:',e);}
@@ -831,7 +834,42 @@ function resolverAuth(){
   pintarUsuarioNaSidebar();
   fbInitialSync();
 }
+function socioGate(){
+  // Ja liberou nesse dispositivo?
+  var ok=false;try{ok=localStorage.getItem(SOCIO_FLAG)===SOCIO_SENHA;}catch(e){}
+  if(ok){AUTH_ADMIN=false;AUTH_LEGACY=false;resolverAuth();return;}
+  // Container do overlay do socio (mesma aparencia do #loginOverlay, reusa classes .lg-*)
+  if(!document.getElementById('socio-css')){
+    var sc=document.createElement('style');sc.id='socio-css';
+    sc.textContent='#socioOverlay{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 30%,#0e2220,#000 70%);display:flex;align-items:center;justify-content:center;font-family:Raleway,sans-serif}';
+    document.head.appendChild(sc);
+  }
+  var ov=document.createElement('div');ov.id='socioOverlay';ov.className='';
+  ov.innerHTML='<div class="lg-card">'
+    +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
+    +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Visualizacao para socios</div>'
+    +'<div class="lg-err" id="scErr"></div>'
+    +'<label class="lg-lbl" for="scPass">Senha de acesso</label><input class="lg-i" id="scPass" type="password" autocomplete="off" placeholder="senha compartilhada">'
+    +'<button class="lg-b" id="scBtn" onclick="entrarSocio()">Entrar</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  // injeta os estilos do login se ainda nao existirem (quando authBoot nao rodou loginMarkup)
+  if(!document.querySelector('style[data-lg]')&&typeof loginMarkup==='function'){/* loginMarkup injeta */}
+  var ap=document.querySelector('.app');if(ap)ap.classList.add('blur');
+  var inp=document.getElementById('scPass');
+  if(inp){inp.addEventListener('keydown',function(e){if(e.key==='Enter')entrarSocio();});setTimeout(function(){inp.focus();},80);}
+}
+function entrarSocio(){
+  var pass=(document.getElementById('scPass').value||'').trim();
+  if(pass!==SOCIO_SENHA){var e=document.getElementById('scErr');if(e){e.textContent='Senha incorreta.';e.style.display='block';}return;}
+  try{localStorage.setItem(SOCIO_FLAG,SOCIO_SENHA);}catch(x){}
+  var ov=document.getElementById('socioOverlay');if(ov)ov.remove();
+  var ap=document.querySelector('.app');if(ap)ap.classList.remove('blur');
+  AUTH_ADMIN=false;AUTH_LEGACY=false;resolverAuth();
+}
 function authBoot(){
+  // Socio via link ?ro=1: pula o login do Firebase, usa senha unica simples
+  if(IS_READONLY){loginMarkup();var _o=document.getElementById('loginOverlay');if(_o)_o.remove();socioGate();return;}
   if(typeof firebase==='undefined'||!firebase.auth){FB_READY=true;AUTH_LEGACY=true;resolverAuth();return;}
   loginMarkup();
   var tentouAnon=false;
