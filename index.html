@@ -1953,6 +1953,12 @@ function valorDaParcela(ctr,parcela){
   });
   return v;
 }
+// Um desconto vale nessa parcela? Sem "apartirDaParcela" (vazio/null) => vale em TODAS (comportamento antigo).
+function descAplicaNaParcela(d,parc){
+  var ap=d&&d.apartirDaParcela;
+  if(ap==null||ap===''||isNaN(ap)||Number(ap)<1)return true;
+  return parc>=Number(ap);
+}
 function descricaoGerada(ctr,parcela){
   var base=ctr.servico||'';
   if(ctr.cliente)base+=' — '+ctr.cliente;
@@ -1974,7 +1980,10 @@ function gerarLancamentosDoMes(monthKey){
     if(ctr.totalParcelas&&parc>ctr.totalParcelas)return;
     var val=valorDaParcela(ctr,parc);
     var it={desc:descricaoGerada(ctr,parc),val:val,date:dataContratoNoMes(ctr,monthKey),status:'pnd',contratoId:ctr.id};
-    if(ctr.descontos&&ctr.descontos.length)it.descontos=JSON.parse(JSON.stringify(ctr.descontos));
+    if(ctr.descontos&&ctr.descontos.length){
+      var descAplic=ctr.descontos.filter(function(d){return descAplicaNaParcela(d,parc);});
+      if(descAplic.length)it.descontos=JSON.parse(JSON.stringify(descAplic));
+    }
     (ctr.tipo==='entrada'?r.entradas:r.saidas).push(it);
   });
   return r;
@@ -2273,8 +2282,20 @@ function closeContratoModal(){document.getElementById('ctrOverlay').classList.re
 function renderCtrDescs(){
   var wrap=document.getElementById('ctr-descs');wrap.innerHTML='';
   tmpDescs.forEach(function(d,i){
-    wrap.innerHTML+='<div class="desc-row"><input placeholder="Descricao (ex: Taxa cartao, IOF)" value="'+(d.desc||'').replace(/"/g,'&quot;')+'" oninput="tmpDescs['+i+'].desc=this.value;updateCtrPreview()"><input class="v" type="number" step="0.01" placeholder="0.00" value="'+(d.val||'')+'" oninput="tmpDescs['+i+'].val=parseFloat(this.value)||0;updateCtrPreview()"><span class="xbtn" onclick="tmpDescs.splice('+i+',1);renderCtrDescs();updateCtrPreview()">&#215;</span></div>';
+    var apVal=(d.apartirDaParcela!=null&&d.apartirDaParcela!=='')?d.apartirDaParcela:'';
+    wrap.innerHTML+='<div class="desc-row">'
+      +'<input placeholder="Descricao (ex: Taxa cartao, IOF)" value="'+(d.desc||'').replace(/"/g,'&quot;')+'" oninput="tmpDescs['+i+'].desc=this.value;updateCtrPreview()">'
+      +'<input class="v" type="number" step="0.01" placeholder="0.00" value="'+(d.val||'')+'" oninput="tmpDescs['+i+'].val=parseFloat(this.value)||0;updateCtrPreview()">'
+      +'<span style="color:var(--mu);font-size:10px;white-space:nowrap">a partir da</span>'
+      +'<input type="number" min="1" placeholder="todas" title="Deixe vazio = desconto vale em TODAS as parcelas. Preencha N = so a partir da parcela N." value="'+apVal+'" style="flex:0 0 58px" oninput="descChangeAp('+i+',this.value)">'
+      +'<span class="xbtn" onclick="tmpDescs.splice('+i+',1);renderCtrDescs();updateCtrPreview()">&#215;</span></div>';
   });
+}
+function descChangeAp(i,val){
+  var v=String(val).trim();
+  if(v===''||isNaN(v)||Number(v)<1)delete tmpDescs[i].apartirDaParcela;
+  else tmpDescs[i].apartirDaParcela=parseInt(v,10);
+  updateCtrPreview();
 }
 function addCtrDesc(){tmpDescs.push({desc:'',val:0});renderCtrDescs();}
 function renderCtrAjustes(){
@@ -2307,10 +2328,11 @@ function updateCtrPreview(){
   var tot=parseInt(document.getElementById('ctr-total').value)||null;
   var inicio=document.getElementById('ctr-inicio').value;
   var dia=parseInt(document.getElementById('ctr-dia').value)||10;
-  var totDesc=tmpDescs.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
   var now=new Date();var curKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   var mock={mesInicio:inicio,valorBase:val,totalParcelas:tot,ajustes:tmpAjustes,servico:serv,cliente:cli,dia:dia};
   var parcAtual=inicio&&/^\d{4}-\d{2}$/.test(inicio)?(diffMonths(inicio,curKey)+1):1;
+  // desconto do mes atual respeita o escopo "a partir da parcela"
+  var totDesc=tmpDescs.filter(function(d){return descAplicaNaParcela(d,parcAtual);}).reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
   var hoje;
   if(!inicio||!/^\d{4}-\d{2}$/.test(inicio))hoje='<b>Preencha o mes de inicio para visualizar</b>';
   else if(parcAtual<1)hoje='<b>Mes atual ('+curKey+'):</b> contrato comeca em '+inicio;
