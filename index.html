@@ -636,6 +636,9 @@ var LEGACY_FLAG='abrii_auth_legado';
 // ══ ACESSO SOCIO (link ?ro=1): senha unica simples, sem criar conta ══
 var SOCIO_SENHA='socios2026'; // senha unica compartilhada com os socios (modo ?ro=1)
 var SOCIO_FLAG='abrii_socio_ok';
+// ══ ACESSO ADMIN: senha simples (Firebase Email/Senha nunca foi ligado). Libera edicao. ══
+var ADMIN_SENHA='railan.ju231'; // senha do admin (Railan); salva no aparelho e abre sozinho depois
+var ADMIN_FLAG='abrii_admin_ok';
 if(typeof firebase!=='undefined'){
   try{firebase.initializeApp(FB_CONFIG);FB_DB_REF=firebase.database().ref('abrii');}
   catch(e){console.warn('Firebase init falhou:',e);}
@@ -811,13 +814,14 @@ function entrarModoLegado(){
   setTimeout(resolverAuth,400);
 }
 function sairDaConta(){
-  try{localStorage.removeItem(LEGACY_FLAG);}catch(e){}
-  firebase.auth().signOut().then(function(){location.reload();}).catch(function(){location.reload();});
+  try{localStorage.removeItem(LEGACY_FLAG);localStorage.removeItem(ADMIN_FLAG);}catch(e){}
+  if(typeof firebase!=='undefined'&&firebase.auth){firebase.auth().signOut().then(function(){location.reload();}).catch(function(){location.reload();});}
+  else location.reload();
 }
 function pintarUsuarioNaSidebar(){
   var nav=document.querySelector('.sb-nav');if(!nav||document.getElementById('sbUser'))return;
   var box=document.createElement('div');box.className='sb-user';box.id='sbUser';
-  var quem=AUTH_LEGACY?'modo legado (sem login)':(AUTH_USER&&AUTH_USER.email?AUTH_USER.email:'—');
+  var quem=(AUTH_ADMIN&&!(AUTH_USER&&AUTH_USER.email))?'administrador':(AUTH_LEGACY?'modo legado (sem login)':(AUTH_USER&&AUTH_USER.email?AUTH_USER.email:'—'));
   var papel=AUTH_ADMIN?'⬤':(AUTH_LEGACY?'⚠':'◐');
   box.innerHTML='<span style="color:'+(AUTH_ADMIN?'var(--green)':(AUTH_LEGACY?'var(--red)':'var(--gold)'))+';font-size:9px">'+papel+'</span>'
    +'<span class="sb-user-e" title="'+quem+'">'+quem+'</span>'
@@ -871,24 +875,53 @@ function entrarSocio(){
   var ap=document.querySelector('.app');if(ap)ap.classList.remove('blur');
   AUTH_ADMIN=false;AUTH_LEGACY=false;resolverAuth();
 }
+// ══ Tela de senha do ADMIN (Railan) ══ libera edicao; salva no aparelho pra abrir sozinho depois
+function adminGate(){
+  if(document.getElementById('adminOverlay'))return;
+  if(!document.getElementById('admin-css')){
+    var sc=document.createElement('style');sc.id='admin-css';
+    sc.textContent='#adminOverlay{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 30%,#0e2220,#000 70%);display:flex;align-items:center;justify-content:center;font-family:Raleway,sans-serif}';
+    document.head.appendChild(sc);
+  }
+  var ov=document.createElement('div');ov.id='adminOverlay';
+  ov.innerHTML='<div class="lg-card">'
+   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
+   +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Acesso do administrador</div>'
+   +'<div class="lg-err" id="adErr"></div>'
+   +'<label class="lg-lbl" for="adPass">Senha</label><input class="lg-i" id="adPass" type="password" autocomplete="current-password" placeholder="senha de admin">'
+   +'<button class="lg-b" onclick="entrarAdmin()">Entrar</button>'
+   +'</div>';
+  document.body.appendChild(ov);
+  var ap=document.querySelector('.app');if(ap)ap.classList.add('blur');
+  var inp=document.getElementById('adPass');
+  if(inp){inp.addEventListener('keydown',function(e){if(e.key==='Enter')entrarAdmin();});setTimeout(function(){inp.focus();},80);}
+}
+function entrarAdmin(){
+  var pass=(document.getElementById('adPass').value||'').trim();
+  if(pass!==ADMIN_SENHA){var e=document.getElementById('adErr');if(e){e.textContent='Senha incorreta.';e.style.display='block';}return;}
+  try{localStorage.setItem(ADMIN_FLAG,ADMIN_SENHA);}catch(x){}
+  var ov=document.getElementById('adminOverlay');if(ov)ov.remove();
+  var ap=document.querySelector('.app');if(ap)ap.classList.remove('blur');
+  AUTH_ADMIN=true;AUTH_LEGACY=false;
+  if(typeof firebase!=='undefined'&&firebase.auth){firebase.auth().signInAnonymously().catch(function(){resolverAuth();});setTimeout(function(){if(!AUTH_RESOLVED)resolverAuth();},700);}
+  else resolverAuth();
+}
 function authBoot(){
   // Socio via link ?ro=1: pula o login do Firebase, usa senha unica simples
   if(IS_READONLY){loginMarkup();var _o=document.getElementById('loginOverlay');if(_o)_o.remove();socioGate();return;}
-  if(typeof firebase==='undefined'||!firebase.auth){FB_READY=true;AUTH_LEGACY=true;resolverAuth();return;}
-  loginMarkup();
-  var tentouAnon=false;
-  firebase.auth().onAuthStateChanged(function(u){
-    if(u&&!u.isAnonymous){
-      AUTH_USER=u;AUTH_ADMIN=ADMIN_EMAILS.indexOf(String(u.email||'').toLowerCase())>=0;AUTH_LEGACY=false;
-      resolverAuth();
-    }else if(u&&u.isAnonymous){
-      AUTH_LEGACY=true;resolverAuth();
-    }else{
-      var legado=false;try{legado=localStorage.getItem(LEGACY_FLAG)==='1';}catch(e){}
-      if(legado&&!tentouAnon){tentouAnon=true;AUTH_LEGACY=true;firebase.auth().signInAnonymously().catch(function(){resolverAuth();});}
-      else if(!AUTH_RESOLVED){var ov=document.getElementById('loginOverlay');if(ov)ov.classList.remove('hide');}
-    }
-  });
+  // Admin: injeta CSS do card de login e remove o overlay antigo do Firebase (nao usamos mais)
+  loginMarkup();var _lo=document.getElementById('loginOverlay');if(_lo)_lo.remove();
+  // A TRANCA E A SENHA DE ADMIN (localStorage), NAO a sessao do Firebase.
+  // Assim, sessao anonima persistida NAO da admin sozinha (evita furo do sócio que tira o ?ro=1).
+  var adminOk=false;try{adminOk=localStorage.getItem(ADMIN_FLAG)===ADMIN_SENHA;}catch(e){}
+  if(!adminOk){adminGate();return;} // sem a senha salva => pede a senha, ponto final
+  // Com a senha salva => admin. Garante sessao anonima so pra satisfazer a regra de escrita do Firebase.
+  AUTH_ADMIN=true;
+  if(typeof firebase!=='undefined'&&firebase.auth){
+    firebase.auth().signInAnonymously().catch(function(){});
+    firebase.auth().onAuthStateChanged(function(){if(!AUTH_RESOLVED)resolverAuth();});
+    setTimeout(function(){if(!AUTH_RESOLVED)resolverAuth();},900);
+  }else{FB_READY=true;resolverAuth();}
 }
 function copySocioLink(){
   var url=location.origin+location.pathname+'?ro=1';
