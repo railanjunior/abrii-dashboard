@@ -1281,8 +1281,20 @@ function eRow(desc,date,val,type,idx,status,descontos,contratoId){
 }
 
 function updateDesc(type,idx,v){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].desc=v;}
-function updateStatus(type,idx,el){RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].status=el.value;el.className='st-sel '+el.value;updateKPIs();autoSave();}
-function smartDate(type,idx,el){var v=el.value.trim();var arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];if(!v){arr[idx].date='';return;}if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){arr[idx].date=v;return;}if(/^\d{2}\/\d{2}\/\d{2}$/.test(v)){v=v.slice(0,6)+'20'+v.slice(6);el.value=v;}else if(/^\d{1,2}\/\d{1,2}$/.test(v)){var p=v.split('/').map(function(s){return s.padStart(2,'0');});var yr=RAW[activeLancMonth].key.split('-')[0];v=p[0]+'/'+p[1]+'/'+yr;el.value=v;}else if(/^\d{1,2}$/.test(v)){var dd=v.padStart(2,'0');var kp=RAW[activeLancMonth].key.split('-');v=dd+'/'+kp[1]+'/'+kp[0];el.value=v;}arr[idx].date=v;RAW[activeLancMonth][type==='en'?'entradas':'saidas']=sortByDate(RAW[activeLancMonth][type==='en'?'entradas':'saidas']);autoSave();renderEntryForm();}
+var _settleTimer=null;
+// Diz se o array ja esta na ordem por data que o renderEntryForm usaria.
+function jaOrdenado(arr){var s=sortByDate(arr);for(var i=0;i<arr.length;i++){if(arr[i]!==s[i])return false;}return true;}
+// Deixa a lista "assentar" (reordenar por data) um instante depois, coalescendo
+// varias chamadas seguidas numa unica re-renderizacao.
+function agendarSettle(){clearTimeout(_settleTimer);_settleTimer=setTimeout(function(){var t=document.getElementById('tab-lancamentos');if(t&&t.style.display!=='none')renderEntryForm();},280);}
+function updateStatus(type,idx,el){var arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];arr[idx].status=el.value;el.className='st-sel '+el.value;updateKPIs();autoSave();
+  // Lancamento recem-criado fica no topo enquanto voce preenche. So DEPOIS de voce
+  // definir o status a linha assenta no lugar certo por data (e nao antes disso).
+  if(!jaOrdenado(arr))agendarSettle();}
+function smartDate(type,idx,el){var v=el.value.trim();var arr=RAW[activeLancMonth][type==='en'?'entradas':'saidas'];if(!v){arr[idx].date='';autoSave();return;}if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){arr[idx].date=v;autoSave();return;}if(/^\d{2}\/\d{2}\/\d{2}$/.test(v)){v=v.slice(0,6)+'20'+v.slice(6);el.value=v;}else if(/^\d{1,2}\/\d{1,2}$/.test(v)){var p=v.split('/').map(function(s){return s.padStart(2,'0');});var yr=RAW[activeLancMonth].key.split('-')[0];v=p[0]+'/'+p[1]+'/'+yr;el.value=v;}else if(/^\d{1,2}$/.test(v)){var dd=v.padStart(2,'0');var kp=RAW[activeLancMonth].key.split('-');v=dd+'/'+kp[1]+'/'+kp[0];el.value=v;}arr[idx].date=v;el.value=v;autoSave();
+  // NAO reordena nem re-renderiza aqui: a linha nova fica parada no topo enquanto
+  // voce preenche, pra o clique no status funcionar. Ela assenta ao definir o status.
+}
 function updateVal(type,idx,el){var raw=el.value.replace(/\.(?=\d{3})/g,'').replace(',','.');var v=parseFloat(raw)||0;RAW[activeLancMonth][type==='en'?'entradas':'saidas'][idx].val=v;el.style.width=valWidth(v);recalcMonth(activeLancMonth);updateEntrySummary();updateKPIs();updateCharts();}
 function addRow(type){RAW[activeLancMonth][type==='en'?'entradas':'saidas'].unshift({desc:'',date:'',val:0,status:'pnd'});selecaoLanc={en:{},sa:{}};renderEntryForm();updateSelecaoBox();setTimeout(function(){var f=document.querySelector('#'+type+'-rows .lbl-i');if(f)f.focus();},50);}
 function delRow(type,idx){
