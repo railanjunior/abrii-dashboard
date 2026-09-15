@@ -646,9 +646,13 @@ if(typeof firebase!=='undefined'){
 function podeEscrever(){return AUTH_ADMIN||AUTH_LEGACY;}
 function fbPush(){
   if(!FB_DB_REF||IS_READONLY||!FB_READY||!podeEscrever())return;
+  // Carimba a versao no MOMENTO da edicao (nao daqui a 800ms). Assim, se um eco
+  // remoto antigo chegar durante o debounce, o listener compara com este ts e
+  // ignora, em vez de sobrescrever a edicao que voce acabou de fazer.
+  FB_LAST_LOCAL_WRITE=Math.max(Date.now(),FB_LAST_LOCAL_WRITE+1);
+  var ts=FB_LAST_LOCAL_WRITE;
   clearTimeout(FB_PUSH_TIMER);
   FB_PUSH_TIMER=setTimeout(function(){
-    var ts=Date.now();FB_LAST_LOCAL_WRITE=ts;
     FB_DB_REF.set({raw:RAW,contratos:CONTRATOS,renovacoes:renovacoes||{},cobTpl:(typeof cobTpl!=='undefined'?cobTpl:null),suprimidos:(typeof contratosSuprimidos!=='undefined'?contratosSuprimidos:{}),notifDisp:(typeof notifDispensadas!=='undefined'?notifDispensadas:{}),saldoCaixa:(typeof SALDO_CAIXA!=='undefined'?SALDO_CAIXA:null),config:(typeof CFG_FIN!=='undefined'?CFG_FIN:null),updatedAt:ts}).catch(function(e){console.warn('fbPush err:',e);});
     fbPushPublico();fbBackupDiario();
   },800);
@@ -711,7 +715,11 @@ function fbInitialSync(){
     // Listener pra mudancas remotas em tempo real
     FB_DB_REF.on('value',function(s){
       var d=s.val();if(!d||!d.raw)return;
-      if(d.updatedAt&&d.updatedAt===FB_LAST_LOCAL_WRITE)return;
+      // Ignora QUALQUER snapshot que nao seja estritamente mais novo do que a
+      // nossa ultima edicao/gravacao local. Cobre o eco do proprio push (==) e,
+      // principalmente, dado velho de outra aba/dispositivo (<) que chegaria
+      // atrasado e faria o "Recebido" voltar pra "Pendente".
+      if(d.updatedAt&&d.updatedAt<=FB_LAST_LOCAL_WRITE)return;
       RAW=d.raw;if(d.contratos)CONTRATOS=d.contratos;
       if(d.renovacoes)renovacoes=d.renovacoes;
       if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
