@@ -21,7 +21,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .logo-icon{flex-shrink:0;width:44px;height:44px;background:rgba(0,0,0,0.5);border:1px solid rgba(47,153,165,0.3);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(47,153,165,0.15)}
 .logo-icon svg{filter:drop-shadow(0 0 5px rgba(47,153,165,0.7))}
 .logo-info{display:flex;flex-direction:column;gap:2px}
-.logo-name{font-family:'Cinzel',serif;font-size:19px;font-weight:700;letter-spacing:2px;line-height:1;background:linear-gradient(135deg,#2f99a5 0%,#c6a15b 60%,#e6d8b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-name{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.5px;line-height:1;color:#f2f6fa}
 .logo-tagline{font-size:7.5px;letter-spacing:2.5px;color:var(--mu);text-transform:uppercase;margin-top:1px}
 .sb-nav{padding:14px 10px 0;flex:1}
 .nl{font-size:8px;letter-spacing:3px;color:var(--mu);text-transform:uppercase;padding:0 8px;margin-bottom:5px;margin-top:12px}
@@ -246,8 +246,8 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
 <div class="app">
 <aside class="sb">
   <div class="sb-logo">
-    <div class="logo-icon"><svg width="38" height="38" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 82,72 50,55" fill="url(#g1)"></polygon><polygon points="50,8 18,72 50,55" fill="url(#g2)"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#111"></path><line x1="50" y1="8" x2="50" y2="55" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"></line><line x1="50" y1="55" x2="18" y2="72" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"></line><line x1="50" y1="55" x2="82" y2="72" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"></line><defs><linearGradient id="g1" x1="50%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3ab4c2"></stop><stop offset="100%" stop-color="#1b4b53"></stop></linearGradient><linearGradient id="g2" x1="0%" y1="0%" x2="50%" y2="100%"><stop offset="0%" stop-color="#2f99a5"></stop><stop offset="100%" stop-color="#164042"></stop></linearGradient></defs></svg></div>
-    <div class="logo-info"><span class="logo-name">ABRii</span><span class="logo-tagline">Prosperando o Brasil</span></div>
+    <div class="logo-icon"><svg width="38" height="38" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 35,42 50,36 65,42" fill="#2f99a5"></polygon><polygon points="50,8 35,42 50,36" fill="#1b4b53"></polygon><polygon points="35,42 50,36 50,55 30,58" fill="#2f99a5" opacity="0.7"></polygon><polygon points="65,42 50,36 50,55 70,58" fill="#1b4b53" opacity="0.9"></polygon><line x1="50" y1="36" x2="50" y2="58" stroke="#f7f9ff" stroke-width="1" opacity="0.6"></line><path d="M 20,72 Q 35,60 50,60 Q 65,60 80,72" stroke="#cfe6ea" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"></path><path d="M 28,72 Q 38,65 50,65 Q 62,65 72,72" stroke="#cfe6ea" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"></path></svg></div>
+    <div class="logo-info"><span class="logo-name">ABR<span style="color:#2f99a5">ii</span></span></div>
   </div>
   <div class="sb-nav">
     <div class="nl">Modulos</div>
@@ -767,7 +767,7 @@ function loginMarkup(){
    +'#loginOverlay.hide{display:none}'
    +'.lg-card{width:min(400px,92vw);background:rgba(6,15,14,.94);border:1px solid rgba(198,161,91,.28);border-radius:10px;padding:38px 34px 30px;box-shadow:0 30px 80px -30px #000}'
    +'.lg-logo{display:flex;justify-content:center;margin-bottom:18px}'
-   +'.lg-t{font-family:Cinzel,serif;font-size:19px;color:var(--cream);text-align:center;letter-spacing:2px;margin-bottom:4px}'
+   +'.lg-t{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:20px;font-weight:800;color:#f2f6fa;text-align:center;letter-spacing:-.3px;margin-bottom:4px}'
    +'.lg-s{font-size:11px;color:#6f8a86;text-align:center;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:26px}'
    +'.lg-lbl{font-size:10px;color:#7e968f;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:block}'
    +'.lg-i{width:100%;background:#0a1918;border:1px solid rgba(47,153,165,.25);border-radius:6px;color:var(--tx);padding:11px 13px;font-size:14px;font-family:Raleway,sans-serif;margin-bottom:16px;outline:none;transition:border-color .18s}'
@@ -784,8 +784,8 @@ function loginMarkup(){
   document.head.appendChild(css);
   var ov=document.createElement('div');ov.id='loginOverlay';
   ov.innerHTML='<div class="lg-card">'
-   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
-   +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Acesso restrito</div>'
+   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100" fill="none"><polygon points="50,8 35,42 50,36 65,42" fill="#2f99a5"></polygon><polygon points="50,8 35,42 50,36" fill="#1b4b53"></polygon><polygon points="35,42 50,36 50,55 30,58" fill="#2f99a5" opacity="0.7"></polygon><polygon points="65,42 50,36 50,55 70,58" fill="#1b4b53" opacity="0.9"></polygon><line x1="50" y1="36" x2="50" y2="58" stroke="#f7f9ff" stroke-width="1" opacity="0.6"></line><path d="M 20,72 Q 35,60 50,60 Q 65,60 80,72" stroke="#cfe6ea" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"></path><path d="M 28,72 Q 38,65 50,65 Q 62,65 72,72" stroke="#cfe6ea" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"></path></svg></div>'
+   +'<div class="lg-t">ABR<span style="color:#2f99a5">ii</span> FINANCEIRO</div><div class="lg-s">Acesso restrito</div>'
    +'<div class="lg-err" id="lgErr"></div>'
    +'<label class="lg-lbl" for="lgMail">E-mail</label><input class="lg-i" id="lgMail" type="email" autocomplete="username" placeholder="voce@abrii.com">'
    +'<label class="lg-lbl" for="lgPass">Senha</label><input class="lg-i" id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••">'
@@ -862,8 +862,8 @@ function socioGate(){
   }
   var ov=document.createElement('div');ov.id='socioOverlay';ov.className='';
   ov.innerHTML='<div class="lg-card">'
-    +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
-    +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Visualizacao para socios</div>'
+    +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100" fill="none"><polygon points="50,8 35,42 50,36 65,42" fill="#2f99a5"></polygon><polygon points="50,8 35,42 50,36" fill="#1b4b53"></polygon><polygon points="35,42 50,36 50,55 30,58" fill="#2f99a5" opacity="0.7"></polygon><polygon points="65,42 50,36 50,55 70,58" fill="#1b4b53" opacity="0.9"></polygon><line x1="50" y1="36" x2="50" y2="58" stroke="#f7f9ff" stroke-width="1" opacity="0.6"></line><path d="M 20,72 Q 35,60 50,60 Q 65,60 80,72" stroke="#cfe6ea" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"></path><path d="M 28,72 Q 38,65 50,65 Q 62,65 72,72" stroke="#cfe6ea" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"></path></svg></div>'
+    +'<div class="lg-t">ABR<span style="color:#2f99a5">ii</span> FINANCEIRO</div><div class="lg-s">Visualizacao para socios</div>'
     +'<div class="lg-err" id="scErr"></div>'
     +'<label class="lg-lbl" for="scPass">Senha de acesso</label><input class="lg-i" id="scPass" type="password" autocomplete="off" placeholder="senha compartilhada">'
     +'<button class="lg-b" id="scBtn" onclick="entrarSocio()">Entrar</button>'
@@ -893,8 +893,8 @@ function adminGate(){
   }
   var ov=document.createElement('div');ov.id='adminOverlay';
   ov.innerHTML='<div class="lg-card">'
-   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100"><polygon points="50,8 82,72 50,55" fill="#3ab4c2"></polygon><polygon points="50,8 18,72 50,55" fill="#2f99a5"></polygon><path d="M24,74 Q50,58 76,74 L70,82 Q50,68 30,82 Z" fill="#0d1a1a"></path></svg></div>'
-   +'<div class="lg-t">ABRii FINANCEIRO</div><div class="lg-s">Acesso do administrador</div>'
+   +'<div class="lg-logo"><svg width="46" height="46" viewBox="0 0 100 100" fill="none"><polygon points="50,8 35,42 50,36 65,42" fill="#2f99a5"></polygon><polygon points="50,8 35,42 50,36" fill="#1b4b53"></polygon><polygon points="35,42 50,36 50,55 30,58" fill="#2f99a5" opacity="0.7"></polygon><polygon points="65,42 50,36 50,55 70,58" fill="#1b4b53" opacity="0.9"></polygon><line x1="50" y1="36" x2="50" y2="58" stroke="#f7f9ff" stroke-width="1" opacity="0.6"></line><path d="M 20,72 Q 35,60 50,60 Q 65,60 80,72" stroke="#cfe6ea" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"></path><path d="M 28,72 Q 38,65 50,65 Q 62,65 72,72" stroke="#cfe6ea" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"></path></svg></div>'
+   +'<div class="lg-t">ABR<span style="color:#2f99a5">ii</span> FINANCEIRO</div><div class="lg-s">Acesso do administrador</div>'
    +'<div class="lg-err" id="adErr"></div>'
    +'<label class="lg-lbl" for="adPass">Senha</label><input class="lg-i" id="adPass" type="password" autocomplete="current-password" placeholder="senha de admin">'
    +'<button class="lg-b" onclick="entrarAdmin()">Entrar</button>'
