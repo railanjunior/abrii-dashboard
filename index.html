@@ -687,6 +687,148 @@ function fbBackupDiario(){
     }).catch(function(e){console.warn('backup err:',e);});
   }catch(e){}
 }
+
+// ===== INTEGRAÇÃO ASAAS (pagamentos recebidos -> lançamento automático) =====
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTEGRAÇÃO ASAAS → DASHBOARD (trecho pra colar no index.html do dashboard)
+   ───────────────────────────────────────────────────────────────────────────
+   Como funciona:
+   - O webhook do Asaas grava cada pagamento recebido em /asaas_inbox/<id>
+     (nó SEPARADO; o webhook NUNCA toca /abrii).
+   - Este trecho (que roda no dashboard, só pro admin) escuta /asaas_inbox e,
+     pra cada pagamento ainda não processado:
+       1) tenta CONCILIAR: acha a cobrança PENDENTE do mês que casa com o
+          pagamento (mesmo cliente/serviço, e normalmente mesmo valor) e marca
+          ela como RECEBIDO ('rcv'), ajustando o valor real e somando a Taxa Asaas.
+       2) se não achar um pendente que case com confiança, cria uma entrada
+          nova já recebida, com prefixo "[Asaas]" pra o Railan conciliar à mão.
+   - Dedup por asaasId (não duplica em reenvio nem ao recarregar a tela).
+   - Depois marca /asaas_inbox/<id>/processed = true (escrita pontual, nó
+     separado, não conflita com o full-set de /abrii).
+
+   ONDE COLAR: dentro do <script>, junto das outras funções fb*. E CHAMAR
+   asaasInboxSync() logo após o listener do fbInitialSync subir (quando AUTH_ADMIN).
+   TESTAR SEMPRE na cópia isolada primeiro (index.local.html / Firebase mock),
+   nunca direto na base viva.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+var ASAAS_INBOX_REF = null;
+
+function asaasInboxSync() {
+  if (typeof firebase === 'undefined' || !AUTH_ADMIN) return;
+  if (ASAAS_INBOX_REF) return; // já ligado
+  try { ASAAS_INBOX_REF = firebase.database().ref('asaas_inbox'); } catch (e) { return; }
+  ASAAS_INBOX_REF.on('child_added', function (snap) { processAsaasPayment(snap.key, snap.val()); });
+  ASAAS_INBOX_REF.on('child_changed', function (snap) { processAsaasPayment(snap.key, snap.val()); });
+  console.log('[asaas] inbox sync ligado');
+}
+
+function entradaTemAsaasId(id) {
+  for (var i = 0; i < RAW.length; i++) {
+    var es = RAW[i].entradas || [];
+    for (var j = 0; j < es.length; j++) { if (es[j].asaasId === id) return true; }
+  }
+  return false;
+}
+
+function mesIdxPorData(iso) {
+  var key = String(iso || '').slice(0, 7); // "YYYY-MM"
+  for (var i = 0; i < RAW.length; i++) { if (RAW[i].key === key) return i; }
+  return -1;
+}
+
+function marcarInboxProcessado(id) {
+  try { firebase.database().ref('asaas_inbox/' + id + '/processed').set(true); } catch (e) {}
+}
+
+// ── conciliação: normaliza texto e acha a cobrança pendente que casa ──────────
+function _asaasNorm(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+var _ASAAS_STOP = { f: 1, de: 1, da: 1, do: 1, e: 1, a: 1, o: 1, mensalidade: 1, outubro: 1,
+  novembro: 1, dezembro: 1, janeiro: 1, fevereiro: 1, marco: 1, abril: 1, maio: 1, junho: 1,
+  julho: 1, agosto: 1, setembro: 1, parte: 1, par: 1, plano: 1, mes: 1, pago: 1 };
+function _asaasTokens(s) {
+  return _asaasNorm(s).split(' ').filter(function (w) { return w.length >= 3 && !_ASAAS_STOP[w]; });
+}
+function acharEntradaPendente(mi, p) {
+  var alvo = _asaasTokens((p.customerName || '') + ' ' + (p.description || ''));
+  var gross = parseFloat(p.gross) || 0;
+  var es = RAW[mi].entradas;
+  var cands = [];
+  for (var i = 0; i < es.length; i++) {
+    var it = es[i];
+    if (it.asaasId) continue;          // já veio do Asaas
+    if (it.status === 'rcv') continue; // já recebido manualmente
+    var set = {}; _asaasTokens(it.desc).forEach(function (t) { set[t] = 1; });
+    var overlap = 0; alvo.forEach(function (t) { if (set[t]) overlap++; });
+    var sameVal = Math.abs((parseFloat(it.val) || 0) - gross) < 0.01;
+    var ok = (sameVal && overlap >= 1) || (overlap >= 2);
+    if (ok) cands.push({ it: it, score: overlap * 10 + (sameVal ? 15 : 0) });
+  }
+  if (!cands.length) return null;
+  cands.sort(function (a, b) { return b.score - a.score; });
+  // só concilia se o melhor for único (sem empate no topo), senão cria nova (mais seguro)
+  if (cands.length > 1 && cands[1].score === cands[0].score) return null;
+  return cands[0].it;
+}
+
+function processAsaasPayment(id, p) {
+  if (!id || !p || p.processed) return;
+  if (entradaTemAsaasId(id)) { marcarInboxProcessado(id); return; } // já lançado
+
+  var mi = mesIdxPorData(p.paymentDate);
+  if (mi < 0) {
+    console.warn('[asaas] mês ' + String(p.paymentDate || '').slice(0, 7) + ' ainda não existe; pagamento ' + id + ' fica na fila.');
+    return; // deixa no inbox (não marca processado); reprocessa quando o mês existir
+  }
+
+  var iso = String(p.paymentDate || '');
+  var dt = iso.length >= 10 ? (iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4)) : '';
+  var nome = (p.customerName || '').trim();
+  var desc = (p.description || '').trim();
+  var label = nome ? (nome + (desc ? (' - ' + desc) : '')) : (desc || 'Pagamento Asaas');
+
+  var gross = parseFloat(p.gross) || 0;
+  var net = (p.net != null) ? (parseFloat(p.net) || 0) : gross;
+  var fee = Math.round((gross - net) * 100) / 100;
+
+  var alvo = acharEntradaPendente(mi, p);
+  if (alvo) {
+    // CONCILIA a cobrança que já existia (evita duplicar)
+    alvo.status = 'rcv';
+    alvo.val = gross;            // reflete o valor real cobrado (ex: com multa/juros)
+    alvo.asaasId = id;
+    alvo.origem = 'asaas';
+    if (dt) alvo.date = dt;      // data real do pagamento
+    if (fee > 0) {
+      alvo.descontos = alvo.descontos || [];
+      if (!alvo.descontos.some(function (d) { return d.desc === 'Taxa Asaas'; })) {
+        alvo.descontos.push({ desc: 'Taxa Asaas', val: fee });
+      }
+    }
+    if (typeof showToast === 'function') showToast('Conciliado (Asaas): ' + (alvo.desc || label) + ' (' + fmt(gross) + ')', 'var(--green)');
+    console.log('[asaas] conciliado com pendente:', alvo.desc, 'liquido', net);
+  } else {
+    // sem match confiável: cria uma entrada nova já recebida, marcada pra conciliar
+    var it = { desc: '[Asaas] ' + label, val: gross, date: dt, status: 'rcv', asaasId: id, origem: 'asaas' };
+    if (fee > 0) it.descontos = [{ desc: 'Taxa Asaas', val: fee }];
+    RAW[mi].entradas.push(it);
+    if (typeof showToast === 'function') showToast('Pagamento recebido (Asaas): ' + label + ' (' + fmt(gross) + ')', 'var(--green)');
+    console.log('[asaas] sem match, criou entrada nova:', label, 'liquido', net);
+  }
+
+  recalcMonth(mi);
+  updateKPIs(); updateCharts();
+  if (document.getElementById('tab-lancamentos') && document.getElementById('tab-lancamentos').style.display !== 'none' && typeof renderEntryForm === 'function') renderEntryForm();
+  if (typeof autoSave === 'function') autoSave(); else if (typeof fbPush === 'function') fbPush();
+
+  marcarInboxProcessado(id);
+}
+
+// ===== FIM INTEGRAÇÃO ASAAS =====
+
 function fbInitialSync(){
   if(!FB_DB_REF){FB_READY=true;if(typeof limpezaCadastro==='function')limpezaCadastro();return;}
   FB_DB_REF.once('value').then(function(snap){
@@ -711,7 +853,7 @@ function fbInitialSync(){
     }
     FB_READY=true;
     if(!IS_READONLY&&podeEscrever()&&(!remote||!remote.raw||remote.raw.length===0)){fbPush();console.log('[fbSync] dados locais publicados na nuvem');}
-    if(AUTH_ADMIN){fbPushPublico();fbBackupDiario();}
+    if(AUTH_ADMIN){fbPushPublico();fbBackupDiario();asaasInboxSync();}
     // Listener pra mudancas remotas em tempo real
     FB_DB_REF.on('value',function(s){
       var d=s.val();if(!d||!d.raw)return;

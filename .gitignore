@@ -23,3 +23,9 @@ venv/
 .venv/
 .pytest_cache/
 
+
+# Auditoria (nunca commitar)
+index.local.html
+index.work.html
+AUDITORIA-DASHBOARD.md
+index.test-asaas.html
