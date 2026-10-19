@@ -839,7 +839,7 @@ function processAsaasPayment(id, p) {
 var ASAAS_SALDO_REF=null;
 function asaasSaldoSync(){
   if(ASAAS_SALDO_REF)return;
-  try{ASAAS_SALDO_REF=firebase.database().ref('publico/asaas_saldo');}catch(e){return;}
+  try{ASAAS_SALDO_REF=firebase.database().ref('asaas_saldo');}catch(e){return;}
   ASAAS_SALDO_REF.on('value',function(snap){
     var v=snap.val();
     if(v&&typeof v.balance==='number'){
