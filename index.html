@@ -841,6 +841,7 @@ function fbInitialSync(){
     var remote=snap.val();
     if(remote&&remote.raw&&remote.raw.length>0){
       RAW=remote.raw;
+      recalcLiquidoAll(); // garante resultado liquido = bruto - saidas - taxas Asaas
       if(remote.contratos)CONTRATOS=remote.contratos;
       if(remote.renovacoes){renovacoes=remote.renovacoes;Object.keys(renovacoes).forEach(function(k){if(String(renovacoes[k]||'').indexOf('pendente-')===0)delete renovacoes[k];});saveRenovacoes();}
       if(remote.cobTpl&&remote.cobTpl.hoje&&remote.cobTpl.atrasado){cobTpl=remote.cobTpl;try{localStorage.setItem(COB_KEY,JSON.stringify(cobTpl));}catch(e){}}
@@ -868,7 +869,7 @@ function fbInitialSync(){
       // principalmente, dado velho de outra aba/dispositivo (<) que chegaria
       // atrasado e faria o "Recebido" voltar pra "Pendente".
       if(d.updatedAt&&d.updatedAt<=FB_LAST_LOCAL_WRITE)return;
-      RAW=d.raw;if(d.contratos)CONTRATOS=d.contratos;
+      RAW=d.raw;recalcLiquidoAll();if(d.contratos)CONTRATOS=d.contratos;
       if(d.renovacoes)renovacoes=d.renovacoes;
       if(d.cobTpl&&d.cobTpl.hoje&&d.cobTpl.atrasado)cobTpl=d.cobTpl;
       if(d.suprimidos)contratosSuprimidos=d.suprimidos;
@@ -1097,6 +1098,7 @@ function loadData(){
   return JSON.parse(JSON.stringify(EMBEDDED_RAW));
 }
 var RAW=loadData();
+recalcLiquidoAll(); // resultado liquido ja nasce descontando as taxas Asaas
 // ══ MIGRACAO IDEMPOTENTE: remove auto-gerados (contratoId) de meses anteriores ao corte ══
 // Roda TODA vez que carrega — assim outras abas com estado velho nao conseguem ressuscitar duplicatas.
 // Operacao idempotente: se nao tem duplicata, nao faz nada (no-op).
@@ -1112,7 +1114,7 @@ var CORTE_CONTRATOS='2026-05';
       if(m.entradas.length!==oE||m.saidas.length!==oS){
         m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
         m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);
-        m.l=m.e-m.s;
+        m.l=m.e-m.s-((m.entradas||[]).reduce(function(x,e){return x+((e.descontos||[]).reduce(function(y,d){return y+(d&&d.desc==='Taxa Asaas'?(parseFloat(d.val)||0):0);},0));},0));
         remE+=(oE-m.entradas.length);remS+=(oS-m.saidas.length);
         alterado=true;
       }
@@ -1159,7 +1161,7 @@ function animCount(elId,target){var el=document.getElementById(elId);var start=p
 function updateKPIs(){
   var totE=RAW.reduce(function(a,m){return a+m.e;},0);
   var totS=RAW.reduce(function(a,m){return a+m.s;},0);
-  var res=totE-totS,pend=pendingTotal(),mg=totE>0?(res/totE*100).toFixed(1):0;
+  var res=totE-totS-taxaAsaasTot(),pend=pendingTotal(),mg=totE>0?(res/totE*100).toFixed(1):0;
   var lastM=RAW[RAW.length-1];
   animCount('kv-e',totE);animCount('kv-s',totS);animCount('kv-r',res);animCount('kv-p',pend);
   document.getElementById('kb-e').textContent=RAW.length+' meses';
@@ -1169,8 +1171,7 @@ function updateKPIs(){
   document.getElementById('kb-r').textContent=(res>=0?'▲ ':'▼ ')+Math.abs(mg)+'% margem';
   document.getElementById('kb-p').textContent=pendingCount()+' lancamentos';
   // Taxas Asaas: soma dos descontos "Taxa Asaas" (cumulativo no card + mes atual no badge)
-  var _taxaSum=function(ms){return ms.reduce(function(a,m){return a+(m.entradas||[]).reduce(function(x,e){return x+((e.descontos||[]).reduce(function(y,d){return y+(d.desc==='Taxa Asaas'?(parseFloat(d.val)||0):0);},0));},0);},0);};
-  var _txTot=_taxaSum(RAW), _txMes=_taxaSum([RAW[RAW.length-1]]);
+  var _txTot=taxaAsaasTot(), _txMes=taxaAsaasMes(RAW[RAW.length-1]);
   if(document.getElementById('kv-tx'))animCount('kv-tx',_txTot);
   if(document.getElementById('kb-tx'))document.getElementById('kb-tx').textContent='este mes '+fmt(_txMes);
   document.getElementById('sb-e').textContent=fmt(totE);
@@ -1310,8 +1311,8 @@ function buildMonthTable(){
   var maxE=Math.max.apply(null,RAW.map(function(m){return m.e;}));
   var h='<tr><th style="text-align:left">Mes</th><th>Receitas</th><th>Despesas</th><th>Resultado</th><th>Margem</th><th>A Receber</th><th>Status</th></tr>';
   var totE=0,totS=0;
-  RAW.forEach(function(m,idx){totE+=m.e;totS+=m.s;var res=m.e-m.s,mg=m.e>0?(res/m.e*100).toFixed(1):0;var p=(m.e/maxE*100).toFixed(0);var mPend=m.entradas.filter(function(e){return e.status==='pnd'||e.status==='atd';}).reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);h+='<tr onclick="drillMonth('+idx+')"><td>'+m.label+'</td><td class="pos">'+fmt2(m.e)+'<div class="bm" style="width:'+p+'%;background:rgba(47,153,165,0.45)"></div></td><td class="neg">'+fmt2(m.s)+'</td><td class="'+(res>=0?'pos':'neg')+'">'+(res>=0?'+':'')+fmt2(res)+'</td><td class="'+(mg>=0?'pos':'neg')+'">'+mg+'%</td><td class="'+(mPend>0?'':'pos')+'">'+(mPend>0?fmt(mPend):'&mdash;')+'</td><td><span class="bdg '+(res>=0?'up':'dn')+'">'+(res>=0?'▲ Lucro':'▼ Prejuizo')+'</span></td></tr>';});
-  var res=totE-totS,mg=totE>0?(res/totE*100).toFixed(1):0;
+  RAW.forEach(function(m,idx){totE+=m.e;totS+=m.s;var res=m.e-m.s-taxaAsaasMes(m),mg=m.e>0?(res/m.e*100).toFixed(1):0;var p=(m.e/maxE*100).toFixed(0);var mPend=m.entradas.filter(function(e){return e.status==='pnd'||e.status==='atd';}).reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);h+='<tr onclick="drillMonth('+idx+')"><td>'+m.label+'</td><td class="pos">'+fmt2(m.e)+'<div class="bm" style="width:'+p+'%;background:rgba(47,153,165,0.45)"></div></td><td class="neg">'+fmt2(m.s)+'</td><td class="'+(res>=0?'pos':'neg')+'">'+(res>=0?'+':'')+fmt2(res)+'</td><td class="'+(mg>=0?'pos':'neg')+'">'+mg+'%</td><td class="'+(mPend>0?'':'pos')+'">'+(mPend>0?fmt(mPend):'&mdash;')+'</td><td><span class="bdg '+(res>=0?'up':'dn')+'">'+(res>=0?'▲ Lucro':'▼ Prejuizo')+'</span></td></tr>';});
+  var res=totE-totS-taxaAsaasTot(),mg=totE>0?(res/totE*100).toFixed(1):0;
   h+='<tr class="tot"><td>TOTAL</td><td class="pos">'+fmt2(totE)+'</td><td class="neg">'+fmt2(totS)+'</td><td class="'+(res>=0?'pos':'neg')+'">'+(res>=0?'+':'')+fmt2(res)+'</td><td class="'+(res>=0?'pos':'neg')+'">'+mg+'%</td><td></td><td></td></tr>';
   document.getElementById('monthTbl').innerHTML=h;
 }
@@ -1506,10 +1507,17 @@ function autoSave(){
   if(!saved)console.warn('AutoSave: nenhum storage disponivel');
   fbPush();
 }
-function recalcMonth(i){var m=RAW[i];m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.l=m.e-m.s;autoSave();}
+// Taxa Asaas do mes (soma dos descontos "Taxa Asaas" nas entradas). Abate no resultado,
+// mas NAO na receita bruta: receita = o que o cliente pagou; taxa = custo de receber.
+function taxaAsaasMes(m){return (m&&m.entradas?m.entradas:[]).reduce(function(x,e){return x+((e.descontos||[]).reduce(function(y,d){return y+(d&&d.desc==='Taxa Asaas'?(parseFloat(d.val)||0):0);},0));},0);}
+function taxaAsaasTot(){return RAW.reduce(function(a,m){return a+taxaAsaasMes(m);},0);}
+// Recalcula SO o resultado liquido de todos os meses (receita bruta - saidas - taxas Asaas).
+// Chamado no load e a cada sync, pra o m.l nunca ficar velho (sem a taxa).
+function recalcLiquidoAll(){RAW.forEach(function(m){m.l=(parseFloat(m.e)||0)-(parseFloat(m.s)||0)-taxaAsaasMes(m);});}
+function recalcMonth(i){var m=RAW[i];m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.l=m.e-m.s-taxaAsaasMes(m);autoSave();}
 function updateEntrySummary(){var m=RAW[activeLancMonth];var pend=m.entradas.filter(function(e){return e.status==='pnd'||e.status==='atd';}).reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);document.getElementById('es-e').textContent=fmt2(m.e);document.getElementById('es-s').textContent=fmt2(m.s);document.getElementById('es-p').textContent=pend>0?fmt2(pend):'R$ 0,00';var r=document.getElementById('es-r');r.textContent=(m.l>=0?'+':'')+fmt2(m.l);r.style.color=m.l>=0?'var(--teal)':'var(--red)';}
 
-function buildCashflow(){var totE=RAW.reduce(function(a,m){return a+m.e;},0);var totS=RAW.reduce(function(a,m){return a+m.s;},0);var cats=categorize(RAW.flatMap(function(m){return m.saidas;}));var sorted=Object.entries(cats).sort(function(a,b){return b[1]-a[1];});var h='<table><tr><th style="text-align:left">Descricao</th><th>Valor</th><th>% do Total</th></tr>';h+='<tr class="cf-s"><td colspan="3">ENTRADAS POR PERIODO</td></tr>';RAW.forEach(function(m){h+='<tr><td>'+m.label+'</td><td class="pos">'+fmt2(m.e)+'</td><td class="pos">'+(totE>0?(m.e/totE*100).toFixed(1):0)+'%</td></tr>';});h+='<tr class="cf-t"><td>TOTAL ENTRADAS</td><td class="pos">'+fmt2(totE)+'</td><td class="pos">100%</td></tr>';h+='<tr class="cf-s"><td colspan="3">SAIDAS POR CATEGORIA</td></tr>';sorted.forEach(function(item){h+='<tr><td>'+item[0]+'</td><td class="neg">'+fmt2(item[1])+'</td><td class="neg">'+(totS>0?(item[1]/totS*100).toFixed(1):0)+'%</td></tr>';});h+='<tr class="cf-t"><td>TOTAL SAIDAS</td><td class="neg">'+fmt2(totS)+'</td><td class="neg">100%</td></tr>';var res=totE-totS;h+='<tr class="cf-r"><td>RESULTADO LIQUIDO</td><td colspan="2" style="text-align:right;color:'+(res>=0?'var(--teal)':'var(--red)')+'">'+(res>=0?'+':'')+fmt2(res)+'</td></tr></table>';document.getElementById('cfTbl').innerHTML=h;}
+function buildCashflow(){var totE=RAW.reduce(function(a,m){return a+m.e;},0);var totS=RAW.reduce(function(a,m){return a+m.s;},0);var cats=categorize(RAW.flatMap(function(m){return m.saidas;}));var sorted=Object.entries(cats).sort(function(a,b){return b[1]-a[1];});var h='<table><tr><th style="text-align:left">Descricao</th><th>Valor</th><th>% do Total</th></tr>';h+='<tr class="cf-s"><td colspan="3">ENTRADAS POR PERIODO</td></tr>';RAW.forEach(function(m){h+='<tr><td>'+m.label+'</td><td class="pos">'+fmt2(m.e)+'</td><td class="pos">'+(totE>0?(m.e/totE*100).toFixed(1):0)+'%</td></tr>';});h+='<tr class="cf-t"><td>TOTAL ENTRADAS</td><td class="pos">'+fmt2(totE)+'</td><td class="pos">100%</td></tr>';h+='<tr class="cf-s"><td colspan="3">SAIDAS POR CATEGORIA</td></tr>';sorted.forEach(function(item){h+='<tr><td>'+item[0]+'</td><td class="neg">'+fmt2(item[1])+'</td><td class="neg">'+(totS>0?(item[1]/totS*100).toFixed(1):0)+'%</td></tr>';});h+='<tr class="cf-t"><td>TOTAL SAIDAS</td><td class="neg">'+fmt2(totS)+'</td><td class="neg">100%</td></tr>';var totTax=taxaAsaasTot();if(totTax>0){h+='<tr class="cf-s"><td colspan="3">TAXAS DE RECEBIMENTO</td></tr>';h+='<tr><td>Taxas Asaas (gateway de pagamento)</td><td class="neg">'+fmt2(totTax)+'</td><td class="neg">&mdash;</td></tr>';}var res=totE-totS-totTax;h+='<tr class="cf-r"><td>RESULTADO LIQUIDO</td><td colspan="2" style="text-align:right;color:'+(res>=0?'var(--teal)':'var(--red)')+'">'+(res>=0?'+':'')+fmt2(res)+'</td></tr></table>';document.getElementById('cfTbl').innerHTML=h;}
 
 function buildTxPills(){var pp=document.getElementById('txPills');pp.innerHTML='';pp.innerHTML+='<button class="mp '+(activeTxMonth===-1?'on':'')+'" onclick="setTxMonth(-1)">Todos</button>';RAW.forEach(function(m,i){pp.innerHTML+='<button class="mp '+(i===activeTxMonth?'on':'')+'" onclick="setTxMonth('+i+')">'+m.label+'</button>';});renderTx();}
 function setTxMonth(i){activeTxMonth=i;document.querySelectorAll('#txPills .mp').forEach(function(b,idx){b.classList.toggle('on',idx-1===i||(i===-1&&idx===0));});renderTx();}
@@ -1518,7 +1526,7 @@ function renderTx(){var months=activeTxMonth===-1?RAW:[RAW[activeTxMonth]];var a
 function buildInsights(){
   var totE=RAW.reduce(function(a,m){return a+m.e;},0);
   var totS=RAW.reduce(function(a,m){return a+m.s;},0);
-  var res=totE-totS, mg=(res/totE*100).toFixed(1);
+  var res=totE-totS-taxaAsaasTot(), mg=(res/totE*100).toFixed(1);
   var pos=RAW.filter(function(m){return m.l>=0;}).length;
   var best=RAW.reduce(function(a,b){return b.l>a.l?b:a;});
   var worst=RAW.reduce(function(a,b){return b.l<a.l?b:a;});
@@ -1654,7 +1662,7 @@ function buildAnual(){
     var crescHtml=cresc!==null?'<span class="bdg '+(cresc>=0?'up':'dn')+'">'+(cresc>=0?'▲':'▼')+' '+Math.abs(cresc)+'%</span>':'<span class="bdg nt">Ano base</span>';
     h+='<tr><td style="font-family:Cinzel,serif;color:var(--gold)">'+ano+'</td><td class="pos">'+fmt2(d.e)+'</td><td class="neg">'+fmt2(d.s)+'</td><td class="'+(d.l>=0?'pos':'neg')+'">'+(d.l>=0?'+':'')+fmt2(d.l)+'</td><td class="'+(mg>=0?'pos':'neg')+'">'+mg+'%</td><td>'+crescHtml+'</td><td class="pos">'+fmt(d.e/d.meses)+'</td></tr>';
   });
-  var totE=RAW.reduce(function(a,m){return a+m.e;},0);var totS=RAW.reduce(function(a,m){return a+m.s;},0);var totL=totE-totS;
+  var totE=RAW.reduce(function(a,m){return a+m.e;},0);var totS=RAW.reduce(function(a,m){return a+m.s;},0);var totL=totE-totS-taxaAsaasTot();
   var p1=porAno[anos[0]],pN=porAno[anos[anos.length-1]];
   var crescTotal=p1.e>0?((pN.e/p1.e-1)*100).toFixed(1):null;
   h+='<tr class="tot"><td>TOTAL GERAL</td><td class="pos">'+fmt2(totE)+'</td><td class="neg">'+fmt2(totS)+'</td><td class="'+(totL>=0?'pos':'neg')+'">'+(totL>=0?'+':'')+fmt2(totL)+'</td><td class="'+(totL>=0?'pos':'neg')+'">'+(totL/totE*100).toFixed(1)+'%</td><td>'+(crescTotal!==null?'<span class="bdg '+(crescTotal>=0?'up':'dn')+'">'+(crescTotal>=0?'▲':'▼')+' '+Math.abs(crescTotal)+'% total</span>':'&mdash;')+'</td><td class="pos">'+fmt(totE/RAW.length)+'</td></tr>';
@@ -2227,7 +2235,7 @@ function gerarLancamentosDoMes(monthKey){
   });
   return r;
 }
-function recalcMonthNoSave(i){var m=RAW[i];m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.l=m.e-m.s;}
+function recalcMonthNoSave(i){var m=RAW[i];m.e=m.entradas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.s=m.saidas.reduce(function(a,b){return a+(parseFloat(b.val)||0);},0);m.l=m.e-m.s-taxaAsaasMes(m);}
 function popularMesDeContratos(monthIdx){
   var m=RAW[monthIdx];
   // Safeguard: nunca popula meses anteriores ao corte
@@ -2762,8 +2770,9 @@ function radarAno(){
   var ms=RAW.filter(function(m){return m.key&&m.key.indexOf(y+'-')===0;});
   var e=ms.reduce(function(a,m){return a+(m.e||0);},0);
   var s=ms.reduce(function(a,m){return a+(m.s||0);},0);
+  var tx=ms.reduce(function(a,m){return a+taxaAsaasMes(m);},0);
   var imp=e*(+CFG_FIN.impostoPct||0)/100;
-  return {ano:y,e:e,s:s,l:e-s,imp:imp,liq:e-s-imp,meses:ms.length};
+  return {ano:y,e:e,s:s,l:e-s-tx,imp:imp,liq:e-s-tx-imp,meses:ms.length};
 }
 function setSaldo(){
   var v=document.getElementById('rdSaldoIn'),d=document.getElementById('rdSaldoDt');
