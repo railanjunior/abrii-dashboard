@@ -668,7 +668,8 @@ function fbPushPublico(){
   if(!AUTH_ADMIN||typeof firebase==='undefined')return;
   try{
     var meses=RAW.map(function(m){return {key:m.key,label:m.label,e:Math.round(m.e*100)/100,s:Math.round(m.s*100)/100,l:Math.round(m.l*100)/100};});
-    firebase.database().ref('publico').set({meses:meses,updatedAt:Date.now()}).catch(function(e){console.warn('publico err:',e);});
+    // update (nao set) pra NAO apagar /publico/asaas_saldo, que o webhook grava.
+    firebase.database().ref('publico').update({meses:meses,updatedAt:Date.now()}).catch(function(e){console.warn('publico err:',e);});
   }catch(e){}
 }
 // Backup automático: 1 snapshot por dia, guarda os últimos 30, apaga o resto sozinho.
@@ -838,7 +839,7 @@ function processAsaasPayment(id, p) {
 var ASAAS_SALDO_REF=null;
 function asaasSaldoSync(){
   if(ASAAS_SALDO_REF)return;
-  try{ASAAS_SALDO_REF=firebase.database().ref('asaas_saldo');}catch(e){return;}
+  try{ASAAS_SALDO_REF=firebase.database().ref('publico/asaas_saldo');}catch(e){return;}
   ASAAS_SALDO_REF.on('value',function(snap){
     var v=snap.val();
     if(v&&typeof v.balance==='number'){
