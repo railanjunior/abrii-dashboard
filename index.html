@@ -105,9 +105,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .kpi-glow{position:absolute;top:-40px;right:-40px;width:110px;height:110px;border-radius:50%;opacity:.06;pointer-events:none}.kpi.t .kpi-glow{background:var(--teal)}.kpi.r .kpi-glow{background:var(--red)}.kpi.g .kpi-glow{background:var(--gold)}.kpi.gr .kpi-glow{background:var(--green)}
 .kpi-l{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-bottom:7px}.kpi-v{font-family:'Cinzel',serif;font-size:21px;font-weight:700;line-height:1;margin-bottom:10px;transition:all .4s}.kpi.t .kpi-v{color:var(--teal)}.kpi.r .kpi-v{color:var(--red)}.kpi.g .kpi-v{color:var(--gold)}.kpi.gr .kpi-v{color:var(--green)}
 .bdg{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-flex;gap:3px}.bdg.up{background:rgba(47,153,165,0.12);color:var(--teal)}.bdg.dn{background:rgba(224,85,85,0.12);color:var(--red)}.bdg.nt{background:rgba(198,161,91,0.1);color:var(--gold)}.bdg.gn{background:rgba(47,170,106,0.12);color:var(--green)}
-.panel{background:var(--sf);border:1px solid var(--br);border-radius:13px;overflow:hidden}
+.panel{background:var(--sf);border:1px solid var(--br);border-radius:13px;overflow:hidden;display:flex;flex-direction:column}
 .ph{display:flex;align-items:center;padding:13px 18px;border-bottom:1px solid var(--br);gap:8px}.ph-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}.ph-t{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--cream)}.ph-s{margin-left:auto;font-size:10px;color:var(--mu)}
-.cw{padding:16px 18px}.g2{display:grid;grid-template-columns:1fr 340px;gap:16px}.g22{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cw{padding:16px 18px;position:relative;flex:1 1 auto;min-height:280px}.g2{display:grid;grid-template-columns:1fr 340px;gap:16px}.g22{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .heatmap-wrap{padding:16px 18px}.hm-labels{display:flex;gap:2px;margin-bottom:4px;padding-left:38px}.hm-label{font-size:8px;color:var(--mu);letter-spacing:1px;flex:1;text-align:center}
 .hm-row{display:flex;align-items:center;gap:2px;margin-bottom:2px}.hm-yr{font-size:9px;color:var(--mu);width:36px;text-align:right;padding-right:6px;font-family:'Cinzel',serif}
 .hm-cell{flex:1;height:32px;border-radius:4px;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;border:1px solid rgba(255,255,255,0.04)}.hm-cell:hover{transform:scale(1.12);box-shadow:0 0 12px rgba(47,153,165,0.4);z-index:2}.hm-cell.empty{background:var(--sf2);cursor:default}.hm-cell.empty:hover{transform:none;box-shadow:none}
@@ -1168,6 +1168,7 @@ function switchTab(name){
   if(name==='lancamentos')buildLancamentos();
   if(name==='contratos')buildContratos();
   if(name==='anual')buildAnual();
+  if(name==='overview')setTimeout(function(){try{CH.bar&&CH.bar.resize();}catch(e){}try{CH.line&&CH.line.resize();}catch(e){}},60);
   // Esconder caixa de selecao fora da aba Lancamentos
   if(name!=='lancamentos'){var sb=document.getElementById('selecao-box');if(sb)sb.style.display='none';}
   else updateSelecaoBox();
