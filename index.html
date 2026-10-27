@@ -2808,11 +2808,22 @@ function radarAno(){
   return {ano:y,e:e,s:s,l:e-s-tx,imp:imp,liq:e-s-tx-imp,meses:ms.length};
 }
 function setSaldo(){
-  var v=document.getElementById('rdSaldoIn'),d=document.getElementById('rdSaldoDt');
+  var v=document.getElementById('rdSaldoIn');
   if(!v)return;
   var num=parseFloat(String(v.value).replace(/[R$\s]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.'))||0;
-  SALDO_CAIXA={val:num,data:(d&&d.value)||brDt(hojeZero()),ts:Date.now()};
-  saveSaldoLocal();fbPush();buildRadar();showToast('Saldo Nubank/outras atualizado ✓','var(--teal)');
+  // carimba a data de HOJE automaticamente (o "conferido em" deixa de ser manual)
+  SALDO_CAIXA={val:num,data:brDt(hojeZero()),ts:Date.now()};
+  saveSaldoLocal();fbPush();buildRadar();showToast('Saldo Nubank atualizado ✓ (conferido hoje)','var(--teal)');
+}
+// Forca uma atualizacao AO VIVO do saldo Asaas (pra quando saiu dinheiro durante o dia e a
+// foto diaria das 08h ficou velha). Dispara o endpoint; o numero volta sozinho pelo listener /asaas_saldo.
+var ASAAS_SALDO_URL='https://abrii-asaas-webhook.vercel.app/api/saldo?refresh=1';
+function refreshAsaasSaldo(a){
+  try{if(a){a.textContent='atualizando...';a.style.pointerEvents='none';}}catch(e){}
+  fetch(ASAAS_SALDO_URL,{method:'POST',mode:'cors'})
+    .then(function(r){return r.json().catch(function(){return{};});})
+    .then(function(){showToast('Saldo Asaas atualizado ao vivo ✓','var(--teal)');setTimeout(function(){try{buildRadar();}catch(e){}},1600);})
+    .catch(function(){showToast('Nao consegui atualizar o saldo Asaas agora','var(--gold)');try{if(a){a.textContent='atualizar agora';a.style.pointerEvents='';}}catch(e){}});
 }
 function setImposto(el){
   CFG_FIN.impostoPct=Math.max(0,Math.min(30,parseFloat(String(el.value).replace(',','.'))||0));
@@ -2870,17 +2881,17 @@ function buildRadar(){
       +'<div style="flex:1;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:9px;padding:8px 10px">'
         +'<div style="font-size:8.5px;letter-spacing:.5px;color:#a78bfa;font-weight:700">&#9889; ASAAS &middot; AUTOMATICO</div>'
         +'<div style="font-family:Cinzel,serif;font-size:15px;color:#c4b5fd;margin-top:3px">'+fmt2(base.asaas)+'</div>'
-        +'<div style="font-size:8px;color:var(--mu);margin-top:2px">'+(base.temAsaas?('atualizado '+asaasSaldoStamp(base.at)):'<span style="color:var(--gold)">aguardando 1a atualizacao</span>')+'</div>'
+        +'<div style="font-size:8px;color:var(--mu);margin-top:2px">'+(base.temAsaas?('atualizado '+asaasSaldoStamp(base.at)):'<span style="color:var(--gold)">aguardando 1a atualizacao</span>')+(AUTH_ADMIN?' &middot; <a href="#" onclick="refreshAsaasSaldo(this);return false" style="color:#a78bfa;cursor:pointer;text-decoration:underline">atualizar agora</a>':'')+'</div>'
       +'</div>'
       +'<div style="flex:1;background:rgba(47,153,165,0.05);border:1px solid var(--br);border-radius:9px;padding:8px 10px">'
         +'<div style="font-size:8.5px;letter-spacing:.5px;color:var(--mu);font-weight:700">NUBANK / OUTRAS CONTAS</div>'
         +'<div style="font-family:Cinzel,serif;font-size:15px;color:var(--tx);margin-top:3px">'+fmt2(base.nubank)+'</div>'
-        +'<div style="font-size:8px;color:var(--mu);margin-top:2px">voce informa'+(SALDO_CAIXA.data?(' &middot; '+SALDO_CAIXA.data):'')+'</div>'
+        +'<div style="font-size:8px;color:var(--mu);margin-top:2px">'+(SALDO_CAIXA.data?('conferido '+SALDO_CAIXA.data):'informe o saldo')+'</div>'
       +'</div>'
     +'</div>'
-    +'<div class="rd-row"><div style="flex:1"><span class="rd-lb">Saldo Nubank/outras (R$)</span><input class="rd-in" id="rdSaldoIn" value="'+(SALDO_CAIXA.val||'')+'" placeholder="14459,78"></div>'
-    +'<div style="width:118px"><span class="rd-lb">Conferido em</span><input class="rd-in" id="rdSaldoDt" value="'+(SALDO_CAIXA.data||brDt(hojeZero()))+'" placeholder="dd/mm/aaaa"></div>'
-    +'<button class="rd-bt" onclick="setSaldo()">Salvar</button></div></div>';
+    +'<div class="rd-row"><div style="flex:1"><span class="rd-lb">Saldo Nubank/outras (R$)</span><input class="rd-in" id="rdSaldoIn" value="'+(SALDO_CAIXA.val||'')+'" placeholder="14459,78" onkeydown="if(event.key===\'Enter\')setSaldo()"></div>'
+    +'<button class="rd-bt" onclick="setSaldo()">Salvar</button></div>'
+    +'<div style="font-size:9px;color:var(--mu);margin-top:7px">A data de “conferido em” é carimbada sozinha no dia em que voce salvar.</div></div>';
 
   h+='<div class="rd-c '+classeAut+'"><div class="rd-h">Autonomia de caixa</div>'
     +'<div class="rd-big" style="color:'+(autonomia<15?'var(--red)':(autonomia<45?'var(--gold)':'var(--green)'))+'">'+(cd>0?autonomia.toFixed(1)+' dias':'—')+'</div>'
