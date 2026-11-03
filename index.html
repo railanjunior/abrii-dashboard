@@ -250,7 +250,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
 <div class="app">
 <aside class="sb">
   <div class="sb-logo">
-    <img src="brand/abrii-lockup.png" alt="ABRii — Prosperando o Brasil" style="height:66px;width:auto;display:block;margin:2px 0">
+    <img src="brand/abrii-symbol.png" alt="" style="height:40px;width:auto;display:block;flex-shrink:0"><img src="brand/abrii-wordmark.png" alt="ABRii Aceleradora de Vendas" style="height:24px;width:auto;display:block">
   </div>
   <div class="sb-nav">
     <div class="nl">Modulos</div>
@@ -932,7 +932,7 @@ function loginMarkup(){
   css.textContent='#loginOverlay{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 30%,#0e2220,#000 70%);display:flex;align-items:center;justify-content:center;font-family:Raleway,sans-serif}'
    +'#loginOverlay.hide{display:none}'
    +'.lg-card{width:min(400px,92vw);background:rgba(6,15,14,.94);border:1px solid rgba(198,161,91,.28);border-radius:10px;padding:38px 34px 30px;box-shadow:0 30px 80px -30px #000}'
-   +'.lg-logo{display:flex;justify-content:center;margin-bottom:18px}'
+   +'.lg-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px}'
    +'.lg-t{font-family:Cinzel,serif;font-size:19px;color:var(--cream);text-align:center;letter-spacing:2px;margin-bottom:4px}'
    +'.lg-s{font-size:11px;color:#6f8a86;text-align:center;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:26px}'
    +'.lg-lbl{font-size:10px;color:#7e968f;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:block}'
@@ -950,7 +950,7 @@ function loginMarkup(){
   document.head.appendChild(css);
   var ov=document.createElement('div');ov.id='loginOverlay';
   ov.innerHTML='<div class="lg-card">'
-   +'<div class="lg-logo"><img src="brand/abrii-lockup.png" alt="ABRii" style="height:88px;width:auto;display:block"></div>'
+   +'<div class="lg-logo"><img src="brand/abrii-symbol.png" alt="" style="height:58px;width:auto"><img src="brand/abrii-wordmark.png" alt="ABRii" style="height:33px;width:auto"></div>'
    +'<div class="lg-t">Financeiro</div><div class="lg-s">Acesso restrito</div>'
    +'<div class="lg-err" id="lgErr"></div>'
    +'<label class="lg-lbl" for="lgMail">E-mail</label><input class="lg-i" id="lgMail" type="email" autocomplete="username" placeholder="voce@abrii.com">'
@@ -1028,7 +1028,7 @@ function socioGate(){
   }
   var ov=document.createElement('div');ov.id='socioOverlay';ov.className='';
   ov.innerHTML='<div class="lg-card">'
-    +'<div class="lg-logo"><img src="brand/abrii-lockup.png" alt="ABRii" style="height:88px;width:auto;display:block"></div>'
+    +'<div class="lg-logo"><img src="brand/abrii-symbol.png" alt="" style="height:58px;width:auto"><img src="brand/abrii-wordmark.png" alt="ABRii" style="height:33px;width:auto"></div>'
     +'<div class="lg-t">Financeiro</div><div class="lg-s">Visualizacao para socios</div>'
     +'<div class="lg-err" id="scErr"></div>'
     +'<label class="lg-lbl" for="scPass">Senha de acesso</label><input class="lg-i" id="scPass" type="password" autocomplete="off" placeholder="senha compartilhada">'
@@ -1059,7 +1059,7 @@ function adminGate(){
   }
   var ov=document.createElement('div');ov.id='adminOverlay';
   ov.innerHTML='<div class="lg-card">'
-   +'<div class="lg-logo"><img src="brand/abrii-lockup.png" alt="ABRii" style="height:88px;width:auto;display:block"></div>'
+   +'<div class="lg-logo"><img src="brand/abrii-symbol.png" alt="" style="height:58px;width:auto"><img src="brand/abrii-wordmark.png" alt="ABRii" style="height:33px;width:auto"></div>'
    +'<div class="lg-t">Financeiro</div><div class="lg-s">Acesso do administrador</div>'
    +'<div class="lg-err" id="adErr"></div>'
    +'<label class="lg-lbl" for="adPass">Senha</label><input class="lg-i" id="adPass" type="password" autocomplete="current-password" placeholder="senha de admin">'
