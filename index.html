@@ -2961,6 +2961,21 @@ function buildRadar(){
     +'<div class="rd-note">Sem imposto o painel mostra '+(ano.l>=0?'+':'')+fmt(ano.l)+'. A diferenca de '+fmt(ano.imp)+' e exatamente o tamanho da ilusao.</div></div>';
   h+='</div>';
 
+  // ── Reserva de caixa (auto 10%) ──
+  var rsvAno=(RAW.length?String(RAW[RAW.length-1].key||'').slice(0,4):''),rsvRec=0,rsvDesp=0,rsvN=0;
+  RAW.forEach(function(m){ if(String(m.key||'').slice(0,4)===rsvAno){ rsvN++;
+    (m.entradas||[]).forEach(function(e){ if((e.status||'rcv')==='rcv') rsvRec+=parseFloat(e.val)||0; });
+    (m.saidas||[]).forEach(function(s){ rsvDesp+=parseFloat(s.val)||0; }); } });
+  var rsvMeta=rsvN?rsvDesp/rsvN:0, rsvIdeal=rsvRec*0.10, rsvProg=rsvMeta?Math.min(100,rsvIdeal/rsvMeta*100):0, rsvMes=rsvN?(rsvRec/rsvN)*0.10:0;
+  h+='<div class="rd-c rd-wide" style="margin-bottom:14px"><div class="rd-h">Reserva de caixa &middot; regra dos 10%</div>'
+    +'<div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin:6px 0 12px">'
+      +'<div><div class="rd-lb">Meta (1 mes de despesa)</div><div class="rd-big" style="font-size:23px">'+fmt(rsvMeta)+'</div></div>'
+      +'<div><div class="rd-lb">10% do que entrou em '+rsvAno+'</div><div style="font-family:Cinzel,serif;font-size:23px;color:var(--teal)">'+fmt(rsvIdeal)+'</div></div>'
+      +'<div><div class="rd-lb">Separar por mes (10%)</div><div style="font-family:Cinzel,serif;font-size:23px;color:var(--gold)">'+fmt(rsvMes)+'</div></div>'
+    +'</div>'
+    +'<div style="height:14px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden"><div style="height:100%;width:'+rsvProg.toFixed(0)+'%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:7px"></div></div>'
+    +'<div class="rd-note">Guardando <b>10% de cada recebimento</b>, sua reserva de 1 mes ('+fmt(rsvMeta)+') '+(rsvIdeal>=rsvMeta?'<b style="color:var(--green)">ja estaria completa</b> so com o que entrou em '+rsvAno:'chegaria a '+fmt(rsvIdeal)+' este ano')+'. Separe cerca de <b>'+fmt(rsvMes)+'/mes</b> numa conta a parte e nao mexa: e esse colchao que segura os meses no vermelho (fev, mai e ago fecharam negativos).</div></div>';
+
   // ── 3. Curva de caixa ──
   h+='<div class="rd-c rd-wide" style="margin-bottom:14px"><div class="rd-h">Curva de caixa projetada — proximos '+(CFG_FIN.horizonte||75)+' dias</div>';
   h+=svgCurvaCaixa(pj,folha);
