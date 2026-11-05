@@ -1203,29 +1203,37 @@ function classifySaida(desc){
   return 'Nao identificado';
 }
 var CAT_META={'Socios (pro-labore)':'#c6a15b','Folha - Equipe':'#d8b874','RH & Beneficios':'#cf9f6a','Doacoes & Dizimo':'#9b7cb8','Alugueis & Condominio':'#2f99a5','Utilidades':'#3fb0bd','Trafego & Ferramentas':'#1b4b53','Fraternidade & Mentorias':'#8c6b3f','Equipamento & Estrutura':'#53c2cf','Eventos & Alimentacao':'#e05555','Repasses & Comissoes':'#5a7a80','Audiovisual & Conteudo':'#6a8f95','Marketing & Eventos':'#a98a4e','Viagem & Transporte':'#7d9aa0','Impostos & Taxas':'#b85450','Pagamento de fatura (rever)':'#e0a050','Nao identificado':'#d9a441'};
+var CATS_LIST=['Socios (pro-labore)','Folha - Equipe','RH & Beneficios','Doacoes & Dizimo','Alugueis & Condominio','Utilidades','Trafego & Ferramentas','Fraternidade & Mentorias','Equipamento & Estrutura','Eventos & Alimentacao','Repasses & Comissoes','Audiovisual & Conteudo','Marketing & Eventos','Viagem & Transporte','Impostos & Taxas'];
+var _catOpen=null;
+function effectiveCat(s){ return (s&&s.cat)?s.cat:classifySaida(s?s.desc:''); }
+function toggleCatOpen(enc){ var c=decodeURIComponent(enc); _catOpen=(_catOpen===c)?null:c; buildCategorias(); }
+function setSaidaCat(mi,si,cat){ var s=RAW[mi]&&RAW[mi].saidas&&RAW[mi].saidas[si]; if(!s)return; if(cat===''){buildCategorias();return;} if(cat==='__auto__'){delete s.cat;} else {s.cat=cat;} if(typeof showToast==='function') showToast('Movido: '+(s.cat||'automatico'),'var(--teal)'); if(typeof fbPush==='function') fbPush(); buildCategorias(); }
 function buildCategorias(){
   var yr=(RAW.length?String(RAW[RAW.length-1].key||'').slice(0,4):'');
-  var ms=RAW.filter(function(m){return String(m.key||'').slice(0,4)===yr;});
-  var cats={},total=0,revisar=[];
-  ms.forEach(function(m){(m.saidas||[]).forEach(function(s){
-    var v=parseFloat(s.val)||0; if(!v)return;
-    var c=classifySaida(s.desc); cats[c]=(cats[c]||0)+v; total+=v;
-    if(c==='Nao identificado'||c==='Pagamento de fatura (rever)') revisar.push({v:v,d:s.desc||'',mk:m.label||m.key});
-  });});
+  var admin=(typeof AUTH_ADMIN!=='undefined'&&AUTH_ADMIN);
+  var cats={},items={},total=0;
+  RAW.forEach(function(m,mi){ if(String(m.key||'').slice(0,4)!==yr)return;
+    (m.saidas||[]).forEach(function(s,si){ var v=parseFloat(s.val)||0; if(!v)return;
+      var c=effectiveCat(s); cats[c]=(cats[c]||0)+v; total+=v;
+      (items[c]=items[c]||[]).push({mi:mi,si:si,v:v,d:s.desc||'',mk:m.label||m.key,manual:!!s.cat});
+    });
+  });
   var rows=Object.keys(cats).map(function(k){return [k,cats[k]];}).sort(function(a,b){return b[1]-a[1];});
-  var html='<div class="panel"><div class="ph"><div class="ph-d" style="background:var(--gold)"></div><div class="ph-t">DESPESAS POR CATEGORIA</div><div class="ph-s">Ano '+yr+' &middot; total '+fmt(total)+'</div></div><div style="padding:16px 18px">';
+  var html='<div class="panel"><div class="ph"><div class="ph-d" style="background:var(--gold)"></div><div class="ph-t">DESPESAS POR CATEGORIA</div><div class="ph-s">Ano '+yr+' &middot; '+fmt(total)+(admin?' &middot; clique numa categoria pra remanejar':'')+'</div></div><div style="padding:14px 18px">';
   rows.forEach(function(r){
-    var pct=total?r[1]/total*100:0,col=CAT_META[r[0]]||'#7d9aa0',warn=(r[0]==='Nao identificado'||r[0]==='Pagamento de fatura (rever)');
-    html+='<div style="display:grid;grid-template-columns:200px 1fr 130px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--br)"><div style="font-size:12.5px;color:var(--tx)">'+r[0]+(warn?' <span style="font-size:9px;color:#07151a;background:'+col+';padding:1px 6px;border-radius:5px">revisar</span>':'')+'</div><div style="height:16px;background:rgba(255,255,255,.04);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+col+';border-radius:5px"></div></div><div style="text-align:right;font-size:12.5px"><b>'+fmt(r[1])+'</b> <span style="color:var(--mu);font-size:11px">'+Math.round(pct)+'%</span></div></div>';
+    var pct=total?r[1]/total*100:0,col=CAT_META[r[0]]||'#7d9aa0',warn=(r[0]==='Nao identificado'||r[0]==='Pagamento de fatura (rever)'),open=(_catOpen===r[0]);
+    html+='<div onclick="toggleCatOpen(\''+encodeURIComponent(r[0])+'\')" style="cursor:pointer;display:grid;grid-template-columns:210px 1fr 130px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--br)"><div style="font-size:12.5px;color:var(--tx)">'+(open?'&#9662; ':'&#9656; ')+r[0]+(warn?' <span style="font-size:9px;color:#07151a;background:'+col+';padding:1px 6px;border-radius:5px">revisar</span>':'')+'</div><div style="height:16px;background:rgba(255,255,255,.04);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+col+';border-radius:5px"></div></div><div style="text-align:right;font-size:12.5px"><b>'+fmt(r[1])+'</b> <span style="color:var(--mu);font-size:11px">'+Math.round(pct)+'%</span></div></div>';
+    if(open){
+      html+='<div style="padding:3px 0 10px 16px">';
+      (items[r[0]]||[]).sort(function(a,b){return b.v-a.v;}).forEach(function(it){
+        html+='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:5px 0;font-size:11.5px;border-top:1px solid rgba(47,153,165,.08)"><div style="flex:1;color:var(--tx)">'+(it.d||'(sem descricao)')+' <span style="color:var(--mu)">&middot; '+it.mk+'</span>'+(it.manual?' <span style="color:var(--teal);font-size:9px">&#9998;</span>':'')+'</div><div style="color:var(--mu);white-space:nowrap;margin-right:6px">'+fmt(it.v)+'</div>';
+        if(admin){ html+='<select onclick="event.stopPropagation()" onchange="setSaidaCat('+it.mi+','+it.si+',this.value)" style="background:var(--sf);color:var(--tx);border:1px solid var(--br);border-radius:6px;font-size:10.5px;padding:3px 4px;max-width:150px"><option value="">mover para...</option><option value="__auto__">(automatico)</option>'; CATS_LIST.forEach(function(c){ html+='<option value="'+c+'"'+(c===r[0]?' selected':'')+'>'+c+'</option>'; }); html+='</select>'; }
+        html+='</div>';
+      });
+      html+='</div>';
+    }
   });
   html+='</div></div>';
-  if(revisar.length){
-    revisar.sort(function(a,b){return b.v-a.v;});
-    var sumRev=revisar.reduce(function(a,b){return a+b.v;},0);
-    html+='<div class="panel" style="margin-top:14px;border-color:rgba(217,164,65,.35)"><div class="ph"><div class="ph-d" style="background:#d9a441"></div><div class="ph-t">PRECISA CATEGORIZAR / REVER</div><div class="ph-s">'+revisar.length+' lancamentos &middot; '+fmt(sumRev)+'</div></div><div style="padding:8px 18px 16px;max-height:440px;overflow:auto">';
-    revisar.forEach(function(it){html+='<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--br);font-size:12px"><div style="color:var(--tx)">'+(it.d||'(sem descricao)')+' <span style="color:var(--mu)">&middot; '+it.mk+'</span></div><div style="color:var(--red);white-space:nowrap">'+fmt(it.v)+'</div></div>';});
-    html+='</div></div>';
-  }
   document.getElementById('catBody').innerHTML=html;
 }
 
