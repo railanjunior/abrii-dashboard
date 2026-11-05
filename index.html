@@ -261,6 +261,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
     <div class="ni" data-tab="radar">⚓ &nbsp;Radar de Caixa</div>
     <div class="ni" data-tab="cashflow">⟁ &nbsp;Fluxo de Caixa</div>
     <div class="ni" data-tab="transactions">◎ &nbsp;Transacoes</div>
+    <div class="ni" data-tab="categorias">▦ &nbsp;Categorias</div>
     <div class="ni" data-tab="insights">⬡ &nbsp;Insights</div>
     <div class="ni" data-tab="anual">◈ &nbsp;Anual</div>
   </div>
@@ -312,6 +313,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
       <button class="tab" data-tab="radar">Radar</button>
       <button class="tab" data-tab="cashflow">Caixa</button>
       <button class="tab" data-tab="transactions">Transacoes</button>
+      <button class="tab" data-tab="categorias">Categorias</button>
       <button class="tab" data-tab="insights">Insights</button>
       <button class="tab" data-tab="anual">Anual</button>
     </div>
@@ -375,6 +377,7 @@ body.cmd-down .erow input,body.cmd-down .erow select{pointer-events:none}
         <div class="panel"><div class="ph"><div class="ph-d" style="background:var(--red)"></div><div class="ph-t">SAIDAS</div><div class="ph-s" id="tx-s-lbl">-</div></div><div class="tx-l" id="txS"></div></div>
       </div>
     </div>
+    <div id="tab-categorias" style="display:none"><div id="catBody"></div></div>
     <div id="tab-insights" style="display:none"><div id="insCards"></div></div>
     <div id="tab-anual" style="display:none">
       <div id="anualCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:16px"></div>
@@ -1155,14 +1158,15 @@ function pendingCount(){return RAW.flatMap(function(m){return m.entradas;}).filt
 function setMode(m){editMode=m==='edit';document.getElementById('btn-edit').classList.toggle('on',editMode);document.getElementById('btn-view').classList.toggle('on',!editMode);document.getElementById('mainContent').classList.toggle('view-mode',!editMode);if(document.getElementById('tab-lancamentos').style.display!=='none')renderEntryForm();}
 
 function switchTab(name){
-  ['overview','lancamentos','contratos','radar','monthly','cashflow','transactions','insights','anual'].forEach(function(t){var el=document.getElementById('tab-'+t);if(el)el.style.display=t===name?'':'none';});
+  ['overview','lancamentos','contratos','radar','monthly','cashflow','transactions','categorias','insights','anual'].forEach(function(t){var el=document.getElementById('tab-'+t);if(el)el.style.display=t===name?'':'none';});
   document.querySelectorAll('.tab,.ni').forEach(function(el){el.classList.toggle('on',el.dataset.tab===name);});
-  var L={overview:'Visao Geral',lancamentos:'Lancamentos',contratos:'Contratos Recorrentes',radar:'Radar de Caixa',monthly:'Mes a Mes',cashflow:'Fluxo de Caixa',transactions:'Transacoes',insights:'Insights',anual:'Resultado Anual'};
+  var L={overview:'Visao Geral',lancamentos:'Lancamentos',contratos:'Contratos Recorrentes',radar:'Radar de Caixa',monthly:'Mes a Mes',cashflow:'Fluxo de Caixa',transactions:'Transacoes',categorias:'Despesas por Categoria',insights:'Insights',anual:'Resultado Anual'};
   document.getElementById('tb-period').textContent=L[name]||name;
   if(name==='monthly')buildMonthTable();
   if(name==='radar')buildRadar();
   if(name==='cashflow')buildCashflow();
   if(name==='transactions')buildTxPills();
+  if(name==='categorias')buildCategorias();
   if(name==='insights')buildInsights();
   if(name==='lancamentos')buildLancamentos();
   if(name==='contratos')buildContratos();
@@ -1173,6 +1177,53 @@ function switchTab(name){
   else updateSelecaoBox();
 }
 document.querySelectorAll('.tab,.ni').forEach(function(el){el.addEventListener('click',function(){if(el.dataset.tab)switchTab(el.dataset.tab);});});
+
+// ── Despesas por Categoria (classificacao on-the-fly, nao altera os dados) ──
+function classifySaida(desc){
+  var d=(desc||'').toLowerCase();
+  var folha=/sal[aá]rio|sal rio|prolabore|pr[oó].?labore/.test(d);
+  var socio=/railan|brayan|adrian/.test(d);
+  if(folha&&socio) return 'Socios (pro-labore)';
+  if(folha) return 'Folha - Equipe';
+  if(/aluguel|totem/.test(d)) return 'Alugueis';
+  if((/\bdas\b|simples nacional|darf|imposto|tribut|inss|fgts|\biof\b|juros|tarifa|anuidade|\bmulta\b/.test(d)) && !/mulher/.test(d)) return 'Impostos & Taxas';
+  if(/fraternidade|\bhub\b|mentoria|mastermind|imers|\bscale\b|clube m\b|g4 educa/.test(d)) return 'Fraternidade & Mentorias';
+  if(/tr[aá]fego|an[uú]ncio|anuncio|meta ads|google ads|ferramenta|software|\bsaas\b|openai|anthropic|vercel|chatfuel|canva|figma|notion|odoo|\berp\b|climb player|campanha|runrunit|worktesk|hostinger|supabase|hostgator|dom[ií]nio/.test(d)) return 'Trafego & Ferramentas';
+  if(/repasse|parte ecossistema|william|willian|wolf|comiss|quinh[aã]o/.test(d)) return 'Repasses & Comissoes';
+  if(/audiovisual|ion content|produ[cç]|v[ií]deo|edi[cç]|\bfoto|filmmaker|film maker/.test(d)) return 'Audiovisual & Producao';
+  if(/brinde|crach[aá]|uniforme|bravvi|outdoor|painel|gr[aá]fica|banner|ingresso|evento|c[uú]pula|\bstand\b|adesivo|document[aá]rio/.test(d)) return 'Marketing & Eventos';
+  if(/cadeira|\bmesa\b|ar condicionad|\btv\b|computad|notebook|monitor|microfone|aspirador|cafeteira|impressora|m[oó]vel|m[oó]veis|equipament|tinta|\bobra\b|focos de luz|canaleta|tomada/.test(d)) return 'Equipamento & Estrutura';
+  if(/confraria|reuni|cerveja|chop|almo|caf[eé]|\bbar\b|pizza|lanche|bebida|sinuca|jantar|happy|padaria|coffe|comes e bebes|churrasc|restaurante|vinho|charuto|mercado/.test(d)) return 'Eventos & Alimentacao';
+  if(/uber|\b99\b|combust|gasolina|viagem|hotel|passagem|ped[aá]gio|estacionament|airbnb|\bvoo\b/.test(d)) return 'Viagem & Transporte';
+  if(/pagamento.{0,4}fatura|fatura\s*nubank|fatura\s*cart|\bfatura\b/.test(d)) return 'Pagamento de fatura (rever)';
+  return 'Nao identificado';
+}
+var CAT_META={'Socios (pro-labore)':'#c6a15b','Folha - Equipe':'#d8b874','Alugueis':'#2f99a5','Trafego & Ferramentas':'#1b4b53','Fraternidade & Mentorias':'#8c6b3f','Equipamento & Estrutura':'#53c2cf','Eventos & Alimentacao':'#e05555','Repasses & Comissoes':'#5a7a80','Audiovisual & Producao':'#6a8f95','Marketing & Eventos':'#a98a4e','Viagem & Transporte':'#7d9aa0','Impostos & Taxas':'#b85450','Pagamento de fatura (rever)':'#e0a050','Nao identificado':'#d9a441'};
+function buildCategorias(){
+  var yr=(RAW.length?String(RAW[RAW.length-1].key||'').slice(0,4):'');
+  var ms=RAW.filter(function(m){return String(m.key||'').slice(0,4)===yr;});
+  var cats={},total=0,revisar=[];
+  ms.forEach(function(m){(m.saidas||[]).forEach(function(s){
+    var v=parseFloat(s.val)||0; if(!v)return;
+    var c=classifySaida(s.desc); cats[c]=(cats[c]||0)+v; total+=v;
+    if(c==='Nao identificado'||c==='Pagamento de fatura (rever)') revisar.push({v:v,d:s.desc||'',mk:m.label||m.key});
+  });});
+  var rows=Object.keys(cats).map(function(k){return [k,cats[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var html='<div class="panel"><div class="ph"><div class="ph-d" style="background:var(--gold)"></div><div class="ph-t">DESPESAS POR CATEGORIA</div><div class="ph-s">Ano '+yr+' &middot; total '+fmt(total)+'</div></div><div style="padding:16px 18px">';
+  rows.forEach(function(r){
+    var pct=total?r[1]/total*100:0,col=CAT_META[r[0]]||'#7d9aa0',warn=(r[0]==='Nao identificado'||r[0]==='Pagamento de fatura (rever)');
+    html+='<div style="display:grid;grid-template-columns:200px 1fr 130px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--br)"><div style="font-size:12.5px;color:var(--tx)">'+r[0]+(warn?' <span style="font-size:9px;color:#07151a;background:'+col+';padding:1px 6px;border-radius:5px">revisar</span>':'')+'</div><div style="height:16px;background:rgba(255,255,255,.04);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+col+';border-radius:5px"></div></div><div style="text-align:right;font-size:12.5px"><b>'+fmt(r[1])+'</b> <span style="color:var(--mu);font-size:11px">'+Math.round(pct)+'%</span></div></div>';
+  });
+  html+='</div></div>';
+  if(revisar.length){
+    revisar.sort(function(a,b){return b.v-a.v;});
+    var sumRev=revisar.reduce(function(a,b){return a+b.v;},0);
+    html+='<div class="panel" style="margin-top:14px;border-color:rgba(217,164,65,.35)"><div class="ph"><div class="ph-d" style="background:#d9a441"></div><div class="ph-t">PRECISA CATEGORIZAR / REVER</div><div class="ph-s">'+revisar.length+' lancamentos &middot; '+fmt(sumRev)+'</div></div><div style="padding:8px 18px 16px;max-height:440px;overflow:auto">';
+    revisar.forEach(function(it){html+='<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--br);font-size:12px"><div style="color:var(--tx)">'+(it.d||'(sem descricao)')+' <span style="color:var(--mu)">&middot; '+it.mk+'</span></div><div style="color:var(--red);white-space:nowrap">'+fmt(it.v)+'</div></div>';});
+    html+='</div></div>';
+  }
+  document.getElementById('catBody').innerHTML=html;
+}
 
 function animCount(elId,target){var el=document.getElementById(elId);var start=parseFloat(el.dataset.cur||0);var dur=500,step=16,t=0;clearInterval(el._timer);el._timer=setInterval(function(){t+=step;var p=Math.min(t/dur,1),ease=1-(1-p)**3;el.textContent='R$ '+Math.round(start+(target-start)*ease).toLocaleString('pt-BR');if(p>=1){clearInterval(el._timer);el.dataset.cur=target;}},step);}
 
