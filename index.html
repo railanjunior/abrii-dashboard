@@ -1181,24 +1181,28 @@ document.querySelectorAll('.tab,.ni').forEach(function(el){el.addEventListener('
 // ── Despesas por Categoria (classificacao on-the-fly, nao altera os dados) ──
 function classifySaida(desc){
   var d=(desc||'').toLowerCase();
-  var folha=/sal[aá]rio|sal rio|prolabore|pr[oó].?labore/.test(d);
+  var folha=/sal[aá]rio|sal rio|prolabore|pr[oó].?labore|pagamento.{0,5}(michelle|carla|uilian|maria)|michelle.{0,8}(lid|operacional|colaborad)|maria.{0,8}(terceiriz|operacional|colaborad)/.test(d);
   var socio=/railan|brayan|adrian/.test(d);
   if(folha&&socio) return 'Socios (pro-labore)';
   if(folha) return 'Folha - Equipe';
-  if(/aluguel|totem/.test(d)) return 'Alugueis';
-  if((/\bdas\b|simples nacional|darf|imposto|tribut|inss|fgts|\biof\b|juros|tarifa|anuidade|\bmulta\b/.test(d)) && !/mulher/.test(d)) return 'Impostos & Taxas';
-  if(/fraternidade|\bhub\b|mentoria|mastermind|imers|\bscale\b|clube m\b|g4 educa/.test(d)) return 'Fraternidade & Mentorias';
-  if(/tr[aá]fego|an[uú]ncio|anuncio|meta ads|google ads|ferramenta|software|\bsaas\b|openai|anthropic|vercel|chatfuel|canva|figma|notion|odoo|\berp\b|climb player|campanha|runrunit|worktesk|hostinger|supabase|hostgator|dom[ií]nio/.test(d)) return 'Trafego & Ferramentas';
+  if(/d[ií]zimo|missionari|\bpastora\b|\bpastor \b|\bigreja\b|minist[eé]rio|doa[cç][aã]o|oferta.{0,6}(igreja|missa|missionari)/.test(d)) return 'Doacoes & Dizimo';
+  if(/demiss|rescis|b[oô]nus|\bbonus\b|adiantamento|empr[eé]stimo|\bf[eé]rias\b|d[eé]cimo|vale[- ]|comiss.{0,8}interna|presente|dia das mulh|anivers|confraterniz|projeto natal|oferta.{0,6}projeto/.test(d)) return 'RH & Beneficios';
+  if((/\bdas\b|simples nacional|darf|\bimposto|tribut|\binss\b|\bfgts\b|\biof\b|receita federal|guia mei|guia da receita|certificado digital|\bmei\b|cart[oó]rio|reconhecimento (de )?firma|reconhecimento contrato|junta comercial|contabil|cont[aá]bil|guia receita/.test(d)) && !/mulher/.test(d)) return 'Impostos & Taxas';
+  if(/\bjuros\b|tarifa banc|anuidade|\bmulta\b.{0,10}(atraso|nubank)/.test(d)) return 'Impostos & Taxas';
+  if(/aluguel|totem|condom[ií]nio/.test(d)) return 'Alugueis & Condominio';
+  if(/celesc|conta de luz|energia el|\benergia\b|samae|casan|\b[aá]gua\b.{0,10}(conta|galao|gal[aã]o)?|internet|\bwifi\b|vivo fibra|claro fibra|\bfibra\b/.test(d)) return 'Utilidades';
+  if(/fraternidade|\bhub\b|mentoria|mastermind|imers|\bscale\b|clube m\b|club m\b|g4 (educa|valley)|\bcurso\b|treinamento/.test(d)) return 'Fraternidade & Mentorias';
+  if(/tr[aá]fego|an[uú]ncio|anuncio|meta ads|google ads|ferramenta|software|\bsaas\b|openai|anthropic|claude|chatgpt|\bgpt\b|vercel|chatfuel|canva|figma|notion|odoo|\berp\b|climb player|campanha|runrunit|worktesk|hostinger|supabase|hostgator|dom[ií]nio|agendor|pipeboard|3c plus|elevenlabs|heygen|capcut|\bgamma\b|google one|compra de seguidores/.test(d)) return 'Trafego & Ferramentas';
   if(/repasse|parte ecossistema|william|willian|wolf|comiss|quinh[aã]o/.test(d)) return 'Repasses & Comissoes';
-  if(/audiovisual|ion content|produ[cç]|v[ií]deo|edi[cç]|\bfoto|filmmaker|film maker/.test(d)) return 'Audiovisual & Producao';
-  if(/brinde|crach[aá]|uniforme|bravvi|outdoor|painel|gr[aá]fica|banner|ingresso|evento|c[uú]pula|\bstand\b|adesivo|document[aá]rio/.test(d)) return 'Marketing & Eventos';
-  if(/cadeira|\bmesa\b|ar condicionad|\btv\b|computad|notebook|monitor|microfone|aspirador|cafeteira|impressora|m[oó]vel|m[oó]veis|equipament|tinta|\bobra\b|focos de luz|canaleta|tomada/.test(d)) return 'Equipamento & Estrutura';
-  if(/confraria|reuni|cerveja|chop|almo|caf[eé]|\bbar\b|pizza|lanche|bebida|sinuca|jantar|happy|padaria|coffe|comes e bebes|churrasc|restaurante|vinho|charuto|mercado/.test(d)) return 'Eventos & Alimentacao';
-  if(/uber|\b99\b|combust|gasolina|viagem|hotel|passagem|ped[aá]gio|estacionament|airbnb|\bvoo\b/.test(d)) return 'Viagem & Transporte';
+  if(/audiovisual|ion content|produ[cç]|v[ií]deo|edi[cç]|\bfoto|filmmaker|film maker|makker|ana mobile/.test(d)) return 'Audiovisual & Conteudo';
+  if(/brinde|crach[aá]|uniforme|bravvi|outdoor|painel|gr[aá]fica|banner|ingresso|\bevento\b|c[uú]pula|\bstand\b|adesivo|document[aá]rio|\bcdl\b|bandeira|\bsquad\b|not[ií]cias|valedoitajai/.test(d)) return 'Marketing & Eventos';
+  if(/cadeira|\bmesa\b|ar condicionad|\btv\b|computad|notebook|monitor|microfone|aspirador|cafeteira|impressora|m[oó]vel|m[oó]veis|equipament|tinta|\bobra\b|focos de luz|canaleta|tomada|iphone|celular|plotagem|visupr|bebedouro|t[eé]rmica|l[aâ]mpada|ilumina|headset|adaptador|utens[ií]lio|pintura|eletricista|reforma|el[eé]trica|constru|lojao|astral|tashibra|ripado|tapete|\bchaves\b|papel|envelope|papelaria|gal[aã]o|of[ií]cio|higielimp|higiez|limpeza|milium|\bdab\b|shoppe|shopee|\binvestiment/.test(d)) return 'Equipamento & Estrutura';
+  if(/confraria|reuni|cerveja|chop|almo|caf[eé]|\bbar\b|pizza|lanche|bebida|sinuca|jantar|happy|padaria|coffe|comes e bebes|churrasc|restaurante|vinho|charuto|mercado|cucas|\bsuco\b|recanto|\bprato\b/.test(d)) return 'Eventos & Alimentacao';
+  if(/uber|\b99\b|combust|gasolina|viagem|hotel|passagem|ped[aá]gio|estacionament|airbnb|\bvoo\b|ida (pra|brayan|adrian)|navegant/.test(d)) return 'Viagem & Transporte';
   if(/pagamento.{0,4}fatura|fatura\s*nubank|fatura\s*cart|\bfatura\b/.test(d)) return 'Pagamento de fatura (rever)';
   return 'Nao identificado';
 }
-var CAT_META={'Socios (pro-labore)':'#c6a15b','Folha - Equipe':'#d8b874','Alugueis':'#2f99a5','Trafego & Ferramentas':'#1b4b53','Fraternidade & Mentorias':'#8c6b3f','Equipamento & Estrutura':'#53c2cf','Eventos & Alimentacao':'#e05555','Repasses & Comissoes':'#5a7a80','Audiovisual & Producao':'#6a8f95','Marketing & Eventos':'#a98a4e','Viagem & Transporte':'#7d9aa0','Impostos & Taxas':'#b85450','Pagamento de fatura (rever)':'#e0a050','Nao identificado':'#d9a441'};
+var CAT_META={'Socios (pro-labore)':'#c6a15b','Folha - Equipe':'#d8b874','RH & Beneficios':'#cf9f6a','Doacoes & Dizimo':'#9b7cb8','Alugueis & Condominio':'#2f99a5','Utilidades':'#3fb0bd','Trafego & Ferramentas':'#1b4b53','Fraternidade & Mentorias':'#8c6b3f','Equipamento & Estrutura':'#53c2cf','Eventos & Alimentacao':'#e05555','Repasses & Comissoes':'#5a7a80','Audiovisual & Conteudo':'#6a8f95','Marketing & Eventos':'#a98a4e','Viagem & Transporte':'#7d9aa0','Impostos & Taxas':'#b85450','Pagamento de fatura (rever)':'#e0a050','Nao identificado':'#d9a441'};
 function buildCategorias(){
   var yr=(RAW.length?String(RAW[RAW.length-1].key||'').slice(0,4):'');
   var ms=RAW.filter(function(m){return String(m.key||'').slice(0,4)===yr;});
